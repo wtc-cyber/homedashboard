@@ -48,37 +48,39 @@
         .col-main { display: flex; flex-direction: column; gap: 15px; height: 100%; }
         .weather-card { flex: 1.5; display: flex; flex-direction: column; padding: 20px; }
 
-/* 區段6: 行動提示樣式 - 撐開高度版 */
+/* 區段6: 行動提示樣式 - 強力支撐版 */
 #action-tip { 
     display: none; 
     position: relative;
-    width: 92%;               /* 闊度適中 */
-    margin: 8px auto;         /* 居中並留上下位 */
-    background: #ff4d4d;      /* 鮮紅色 */
+    width: 94%;               /* 闊度佔滿大部份 */
+    margin: 8px auto;         /* 同上下保持距離 */
+    background: #ff4d4d;      /* 實色紅色，唔好用透明，細Mon睇得清啲 */
     color: white; 
-    /* 關鍵：唔好寫死 height，用 padding 撐開 */
-    padding: 8px 0;           
-    min-height: 24px;         /* 確保最少有咁高，唔會變一條線 */
+    
+    /* --- 關鍵設定：撐開高度 --- */
+    height: 32px;             /* 直接寫死高度，唔怕佢變線 */
+    line-height: 32px;        /* 令啲字垂直居中 */
+    
     border-radius: 6px; 
-    font-size: 0.9rem;        /* 字體大返少少 */
-    font-weight: bold;
-    overflow: hidden;         /* 遮住超出框框嘅字 */
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    font-size: 1rem;          /* 字體大返少少 */
+    font-weight: 800;         /* 用最粗體，保證細Mon清楚 */
+    overflow: hidden;         /* 遮住框外嘅字 */
+    z-index: 999;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.3); /* 加個淡邊框令佢更顯眼 */
 }
 
 .marquee {
-    display: block;           /* 改做 block 確保攞到闊度 */
-    white-space: nowrap;      /* 唔准換行 */
-    width: fit-content;       /* 闊度跟文字長度 */
-    animation: marquee 12s linear infinite; 
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;       /* 從最右邊外面開始入黎 */
+    animation: marquee 20s linear infinite; 
 }
 
 @keyframes marquee {
-    0% { transform: translateX(100vw); }   /* 從右邊畫面外開始 */
-    100% { transform: translateX(-100%); }  /* 移到左邊消失 */
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-200%); } /* 確保長句子都行得完 */
 }
-
         /* 區段7: 時鐘和警告樣式 */
         /* 這個區段處理時鐘頭部、警告圖標和暫停指示器的樣式。 */
         .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; position: relative; }
