@@ -81,6 +81,7 @@
     0%   { transform: translateX(0); }
     100% { transform: translateX(-200%); } /* 確保長句子都行得完 */
 }
+
         /* 區段7: 時鐘和警告樣式 */
         /* 這個區段處理時鐘頭部、警告圖標和暫停指示器的樣式。 */
         .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; position: relative; }
@@ -592,7 +593,7 @@ function speakAlertContent() {
         });
         window.toggleTask = function(key, done) { update(ref(db, 'tasks/'+key), { done }); window.wakeUp(); };
 
-// 區段13: 天氣和預報邏輯 - 完整整合版
+// 區段13: 天氣和預報邏輯 - 完整整合修正版
 function formatTime(date) {
     return String(date.getHours()).padStart(2, '0') + ":" + String(date.getMinutes()).padStart(2, '0');
 }
@@ -634,38 +635,49 @@ async function fetchWeather() {
         }
 
         // ==========================================
-        // 2. 獲取 Open-Meteo 補充數據 (降雨預測 & 體感)
+        // 2. 獲取 Open-Meteo 補充數據 (降雨預測、體感、風速)
         // ==========================================
         const lat = config.latitude || 22.3;
         const lon = config.longitude || 114.1;
         const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=apparent_temperature,wind_speed_10m&hourly=precipitation_probability&timezone=auto&forecast_hours=4`);
         const omData = await omRes.json();
 
+        // 處理降雨概率
         const maxRainProb = Math.max(...(omData.hourly?.precipitation_probability || [0]));
         if (document.getElementById('w-rain')) document.getElementById('w-rain').innerText = maxRainProb + "%";
-        if (document.getElementById('w-feels')) document.getElementById('w-feels').innerText = omData.current.apparent_temperature.toFixed(1) + "°";
+
+        // 處理體感溫度
+        if (document.getElementById('w-feels')) {
+            const feelsLike = omData.current?.apparent_temperature ?? 0;
+            document.getElementById('w-feels').innerText = feelsLike.toFixed(1) + "°";
+        }
+
+        // 處理風速 (修正漏掉的部分)
+        if (document.getElementById('w-wind')) {
+            const windSpeed = omData.current?.wind_speed_10m ?? omData.current?.windspeed ?? 0;
+            document.getElementById('w-wind').innerText = Math.round(windSpeed);
+        }
 
         // ==========================================
         // 3. 觸發服裝建議 (Outfit Update)
         // ==========================================
-        // 判斷是否下雨：降雨概率 > 50% 或 天文台圖標顯示下雨(60-65)或雷暴(90-93)
         const isRainingNow = (maxRainProb >= 50) || (hkoIconCode >= 60 && hkoIconCode <= 65) || (hkoIconCode >= 90 && hkoIconCode <= 93);
         
         if (typeof updateOutfit === 'function') {
             updateOutfit(currentTemp, isRainingNow);
         }
 
-        // --- 降雨專屬走馬燈顯示 ---
+        // --- 降雨專屬走馬燈顯示 (紅色警告框高度優化) ---
         const actionBox = document.getElementById('action-tip');
         if (actionBox) {
             if (!actionBox.innerHTML.includes('🚨') && maxRainProb >= 50) {
-                const spacer = "&nbsp;".repeat(15);
-                actionBox.innerHTML = `<div class="marquee">🌧️ 未來預計有雨！請收衫 / Rain Soon!${spacer}</div>`;
+                const spacer = "&nbsp;".repeat(20);
+                actionBox.style.height = "32px"; // 強制撐開高度
+                actionBox.style.lineHeight = "32px";
                 actionBox.style.display = "block";
-                actionBox.style.background = "var(--action)"; 
-                actionBox.classList.remove("flash-bg");
+                actionBox.innerHTML = `<div class="marquee">🌧️ 未來預計有雨！請收衫 / Rain Soon!${spacer}</div>`;
+                actionBox.style.background = "var(--action, #3498db)"; 
             } else if (!actionBox.innerHTML.includes('🚨')) {
-                // 如果既冇警告又冇雨，就隱藏
                 actionBox.style.display = "none";
             }
         }
