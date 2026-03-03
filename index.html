@@ -48,33 +48,35 @@
         .col-main { display: flex; flex-direction: column; gap: 15px; height: 100%; }
         .weather-card { flex: 1.5; display: flex; flex-direction: column; padding: 20px; }
 
-/* 區段6: 行動提示樣式 - 嵌入版 */
+/* 區段6: 行動提示樣式 - 撐開高度版 */
 #action-tip { 
     display: none; 
-    position: relative;       /* 取消 absolute，唔再浮動 */
-    margin: 5px auto;         /* 上下留 5px 位，居中 */
-    width: 95%;               /* 佔據大部份闊度 */
-    background: rgba(255, 77, 77, 0.9); 
+    position: relative;
+    width: 92%;               /* 闊度適中 */
+    margin: 8px auto;         /* 居中並留上下位 */
+    background: #ff4d4d;      /* 鮮紅色 */
     color: white; 
-    padding: 3px 0;           /* 稍微加厚少少方便睇 */
-    border-radius: 4px; 
-    font-weight: bold; 
-    font-size: 0.8em;         /* 字體唔使太細 */
-    overflow: hidden; 
-    white-space: nowrap; 
-    z-index: 10;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    /* 關鍵：唔好寫死 height，用 padding 撐開 */
+    padding: 8px 0;           
+    min-height: 24px;         /* 確保最少有咁高，唔會變一條線 */
+    border-radius: 6px; 
+    font-size: 0.9rem;        /* 字體大返少少 */
+    font-weight: bold;
+    overflow: hidden;         /* 遮住超出框框嘅字 */
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
 .marquee {
-    display: inline-block;
-    padding-left: 100%;
-    animation: marquee 15s linear infinite; 
+    display: block;           /* 改做 block 確保攞到闊度 */
+    white-space: nowrap;      /* 唔准換行 */
+    width: fit-content;       /* 闊度跟文字長度 */
+    animation: marquee 12s linear infinite; 
 }
 
 @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-150%); } 
+    0% { transform: translateX(100vw); }   /* 從右邊畫面外開始 */
+    100% { transform: translateX(-100%); }  /* 移到左邊消失 */
 }
 
         /* 區段7: 時鐘和警告樣式 */
