@@ -48,40 +48,40 @@
         .col-main { display: flex; flex-direction: column; gap: 15px; height: 100%; }
         .weather-card { flex: 1.5; display: flex; flex-direction: column; padding: 20px; }
 
-/* 區段6: 行動提示樣式 - 強力支撐版 */
+/* 區段6: 行動提示樣式 - 終極撐開版 */
 #action-tip { 
     display: none; 
     position: relative;
-    width: 94%;               /* 闊度佔滿大部份 */
-    margin: 8px auto;         /* 同上下保持距離 */
-    background: #ff4d4d;      /* 實色紅色，唔好用透明，細Mon睇得清啲 */
-    color: white; 
+    width: 96%;              /* 佔滿闊度 */
+    margin: 10px auto;
+    background: #ff4d4d !important; /* 強制紅色 */
+    color: white !important;
     
-    /* --- 關鍵設定：撐開高度 --- */
-    height: 32px;             /* 直接寫死高度，唔怕佢變線 */
-    line-height: 32px;        /* 令啲字垂直居中 */
+    /* 核心修正：用 padding 撐開高度，唔好用 height */
+    padding: 12px 0 !important; 
+    min-height: 44px;         /* 確保最少有咁高，手指都點到 */
     
-    border-radius: 6px; 
-    font-size: 1rem;          /* 字體大返少少 */
-    font-weight: 800;         /* 用最粗體，保證細Mon清楚 */
-    overflow: hidden;         /* 遮住框外嘅字 */
-    z-index: 999;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.3); /* 加個淡邊框令佢更顯眼 */
+    border-radius: 8px; 
+    font-size: 1.1rem;        /* 字體大啲，細Mon先睇到 */
+    font-weight: 900;         /* 極粗體 */
+    text-align: center;
+    overflow: hidden; 
+    z-index: 9999;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
 }
 
 .marquee {
     display: inline-block;
     white-space: nowrap;
-    padding-left: 100%;       /* 從最右邊外面開始入黎 */
-    animation: marquee 20s linear infinite; 
+    /* 確保文字垂直置中 */
+    vertical-align: middle;
+    animation: marquee 10s linear infinite; 
 }
 
 @keyframes marquee {
-    0%   { transform: translateX(0); }
-    100% { transform: translateX(-200%); } /* 確保長句子都行得完 */
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-150%); } 
 }
-
         /* 區段7: 時鐘和警告樣式 */
         /* 這個區段處理時鐘頭部、警告圖標和暫停指示器的樣式。 */
         .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; position: relative; }
