@@ -60,7 +60,6 @@
     color: white !important;        /* 字體顏色 */
 
     /* --- 核心修正：解決痴底/垂直居中 --- */
-    display: flex !important;       /* 啟用彈性佈局 */
     align-items: center;            /* 垂直居中：解決痴底問題 */
     justify-content: center;        /* 水平居中 */
     
@@ -683,7 +682,7 @@ async function fetchWeather() {
                 const spacer = "&nbsp;".repeat(20);
                 actionBox.style.height = "32px"; // 強制撐開高度
                 actionBox.style.lineHeight = "32px";
-                actionBox.style.display = "block";
+                actionBox.style.display = "flex";
                 actionBox.innerHTML = `<div class="marquee">🌧️ 未來預計有雨！請收衫 / Rain Soon!${spacer}</div>`;
                 actionBox.style.background = "var(--action, #3498db)"; 
             } else if (!actionBox.innerHTML.includes('🚨')) {
