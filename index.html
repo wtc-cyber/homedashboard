@@ -586,9 +586,27 @@ function speakAlertContent() {
             else document.exitFullscreen(); 
         };
 
-        // 區段12: 數據監聽（日程和任務）
-        // 這個區段從Firebase監聽日程和任務數據，並更新UI。
-        onValue(ref(db, 'schedule'), (snap) => { document.getElementById('schedule-text').innerText = (snap.val()||{})[new Date().toLocaleDateString('en-CA')] || "Free day."; });
+// 區段12: 數據監聽（日程和任務）- 自動刷新版
+        let allSchedules = {}; // 用嚟暫存所有日程數據
+
+        // 1. 監聽日程：攞到數據後存入變數，並執行第一次顯示
+        onValue(ref(db, 'schedule'), (snap) => { 
+            allSchedules = snap.val() || {}; 
+            updateScheduleDisplay(); 
+        });
+
+        // 2. 定義更新函數：根據「而家嘅日期」去搵返對應嘅日程
+        function updateScheduleDisplay() {
+            const today = new Date().toLocaleDateString('en-CA'); // 格式: YYYY-MM-DD
+            const scheduleText = allSchedules[today] || "Free day.";
+            const el = document.getElementById('schedule-text');
+            if (el) el.innerText = scheduleText;
+        }
+
+        // 3. 每分鐘 check 一次日期：確保過咗午夜 12 點會自動跳去新一日
+        setInterval(updateScheduleDisplay, 60000);
+
+        // 4. 監聽任務 (原本嗰段保留)
         onValue(ref(db, 'tasks'), (snap) => {
             const list = document.getElementById('task-list'); list.innerHTML = "";
             const tasks = snap.val() || {};
