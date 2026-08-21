@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V44</title>
+    <title>Smart Home Dashboard V45</title>
     <style>
         /* 區段1: 根變量定義 */
         /* 這個區段定義了顏色變量，如背景、文字、強調色等，用於主題一致性。 */
@@ -587,37 +587,123 @@ function speakAlertContent() {
         };
 
 // 區段12: 數據監聽（日程和任務）- 自動刷新版
-        let allSchedules = {}; // 用嚟暫存所有日程數據
 
-        // 1. 監聽日程：攞到數據後存入變數，並執行第一次顯示
-        onValue(ref(db, 'schedule'), (snap) => { 
-            allSchedules = snap.val() || {}; 
-            updateScheduleDisplay(); 
-        });
+// Google Calendar + Google Tasks 讀取
+async function loadGoogleData(){ 
 
-        // 2. 定義更新函數：根據「而家嘅日期」去搵返對應嘅日程
-        function updateScheduleDisplay() {
-            const today = new Date().toLocaleDateString('en-CA'); // 格式: YYYY-MM-DD
-            const scheduleText = allSchedules[today] || "Free day.";
-            const el = document.getElementById('schedule-text');
-            if (el) el.innerText = scheduleText;
+    try{ 
+
+        const res = await fetch(
+            "https://script.google.com/macros/s/AKfycbwQYH8acYSz11SzdR9HNhyOrSuMcMjRii1i1Ej1wwJ1wZNs9T8Qj4rB_EGD77AKxBoR8g/exec"
+        );  
+
+        const data = await res.json();  
+
+
+        // ===== Calendar ===== 
+
+        const events = data.calendar || []; 
+
+        let scheduleHTML = ""; 
+
+
+        events
+        .sort((a,b)=>new Date(a.start)-new Date(b.start))
+        .slice(0,5)
+        .forEach(event=>{   
+
+            const start = new Date(event.start);   
+
+            scheduleHTML += 
+            start.toLocaleTimeString(
+                'en-GB',
+                {
+                    hour:'2-digit',
+                    minute:'2-digit'
+                }
+            )
+            + " "
+            + event.title
+            + "<br>"; 
+
+        });   
+
+
+        const scheduleEl = document.getElementById(
+            "schedule-text"
+        );
+
+
+        if(scheduleEl){ 
+
+            scheduleEl.innerHTML =
+            scheduleHTML || "No Schedule";
+
         }
 
-        // 3. 每分鐘 check 一次日期：確保過咗午夜 12 點會自動跳去新一日
-        setInterval(updateScheduleDisplay, 60000);
 
-        // 4. 監聽任務 (原本嗰段保留)
-        onValue(ref(db, 'tasks'), (snap) => {
-            const list = document.getElementById('task-list'); list.innerHTML = "";
-            const tasks = snap.val() || {};
-            Object.keys(tasks).forEach(key => {
-                const t = tasks[key];
-                const li = document.createElement('li');
-                li.innerHTML = `<input type='checkbox' class='task-checkbox' ${t.done?'checked':''} onchange="toggleTask('${key}', this.checked)"><span class='${t.done?'task-done':''}'>${t.text}</span>`;
-                list.appendChild(li);
-            });
-        });
-        window.toggleTask = function(key, done) { update(ref(db, 'tasks/'+key), { done }); window.wakeUp(); };
+
+        // ===== Tasks ===== 
+
+        const tasks = data.tasks || []; 
+
+        let taskHTML = ""; 
+
+
+        tasks
+        .slice(0,5)
+        .forEach(task=>{ 
+
+            taskHTML +=
+            "☐ "
+            + task.title
+            + "<br>";
+
+        }); 
+
+
+        const taskEl = document.getElementById(
+            "task-list"
+        );
+
+
+        if(taskEl){ 
+
+            taskEl.innerHTML =
+            taskHTML || "No Tasks";
+
+        }
+
+
+    } 
+    catch(e){   
+
+        console.log(
+            "Google Data Error",
+            e
+        );   
+
+
+        const scheduleEl = document.getElementById(
+            "schedule-text"
+        );
+
+        if(scheduleEl){ 
+            scheduleEl.innerHTML = "Calendar Error";
+        } 
+
+
+        const taskEl = document.getElementById(
+            "task-list"
+        );
+
+        if(taskEl){ 
+            taskEl.innerHTML = "Task Error";
+        } 
+
+    }   
+
+}
 
 // 區段13: 天氣和預報邏輯 - 完整整合修正版
 function formatTime(date) {
@@ -1003,12 +1089,17 @@ function initDashboard() {
 window.onload = function() {
     console.log("System Starting...");
 
+   // Google Calendar + Tasks
+if (typeof loadGoogleData === 'function') {
+    loadGoogleData();
+    setInterval(loadGoogleData,30000);
+}
+
     // 1. 天氣 & 服裝：每 5 分鐘更新一次
     fetchWeather();
     setInterval(fetchWeather, 300000); 
 
     // 2. 天文台警告 (最即時)：每 1 分鐘更新一次
-    // 確保你有放剛才寫的那個 fetchHKOWarning 函數
     if (typeof fetchHKOWarning === 'function') {
         fetchHKOWarning();
         setInterval(fetchHKOWarning, 60000); 
