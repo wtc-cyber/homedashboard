@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V46</title>
+    <title>Smart Home Dashboard V47</title>
     <style>
         /* 區段1: 根變量定義 */
         /* 這個區段定義了顏色變量，如背景、文字、強調色等，用於主題一致性。 */
@@ -147,22 +147,24 @@
         .ob-title { color: #888; font-size: 0.75em; text-transform: uppercase; margin-bottom: 2px; }
         .ob-content { font-size: 1.1em; color: #fff; line-height: 1.2; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 區段11: 側邊欄樣式 */
-/* 日程、任務和巴士資訊垂直比例：Schedule 40% / Task 20% / Bus 40% */
+/* 區段11: 側邊欄樣式 */
+/* 日程、任務和巴士資訊垂直比例：Schedule 35% / Task 20% / Bus 45% */
 
 .col-side { 
     display: flex; 
     flex-direction: column; 
-    gap: 15px; 
+    gap: 10px; 
     height: 100%; 
 }
 
 
-/* Schedule 40% */
+/* Schedule 35% */
 .schedule-box { 
-    flex: 0 0 40%; 
+    flex: 0 0 35%; 
     border-top: 4px solid #FFD700; 
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
     transition: all 0.3s; 
 }
 
@@ -178,6 +180,7 @@
 
 
 .schedule-content { 
+    flex: 1;
     font-size: 1.1em; 
     color: #ddd; 
     white-space: pre-wrap; 
@@ -193,6 +196,8 @@
     border-top: 4px solid var(--accent); 
     min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -211,7 +216,7 @@
     padding: 0; 
     overflow-y: auto; 
     margin: 0; 
-    height: calc(100% - 35px);
+    flex: 1;
 }
 
 
@@ -240,13 +245,21 @@
 
 
 
-/* Bus 40% */
+/* Bus 45% */
 .bus-box {
-    flex: 0 0 40%;
+    flex: 0 0 45%;
     border-top: 4px solid #00bfff;
+    min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
+
+#bus-container {
+    flex: 1;
+    overflow-y: auto;
+}
         /* 區段12: 巴士資訊樣式 */
         /* 這個區段定義巴士路線、時間和列表的樣式，包括首班車強調。 */
         .bus-box { flex: 0 0 170px; border-top: 4px solid var(--bus); background: #1a1111; padding-bottom: 10px; }
@@ -687,31 +700,78 @@ async function loadGoogleData(){
         const data = await res.json();  
 
 
-// ===== Calendar =====  
+// ===== Calendar =====    
 
-const events = data.calendar || [];  
+const events = data.calendar || [];    
 
-let scheduleHTML = "";  
+let scheduleHTML = "";    
 
 
 events
 .sort((a,b)=>new Date(a.start)-new Date(b.start))
 .slice(0,5)
-.forEach(event=>{    
+.forEach(event=>{      
 
-    const start = new Date(event.start);    
+    const start = new Date(event.start);      
 
-    scheduleHTML +=  
-    start.toLocaleDateString(
-        'en-GB',
-        {
-            weekday:'short',
-            day:'numeric',
-            month:'short'
-        }
-    )
+
+    // 判斷 Today / Tomorrow
+    const now = new Date();
+
+    const today = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+    );
+
+    const eventDay = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate()
+    );
+
+
+    const diffDays = Math.round(
+        (eventDay - today) / 
+        (1000 * 60 * 60 * 24)
+    );
+
+
+    let dateText = "";
+
+
+    if(diffDays === 0){
+
+        dateText = "Today";
+
+    }
+    else if(diffDays === 1){
+
+        dateText = "Tomorrow";
+
+    }
+    else{
+
+        dateText = start.toLocaleDateString(
+            'en-GB',
+            {
+                weekday:'short',
+                day:'2-digit',
+                month:'short'
+            }
+        );
+
+    }
+
+
+    scheduleHTML +=    
+
+    dateText
+
     + " "
+
     +
+
     start.toLocaleTimeString(
         'en-GB',
         {
@@ -719,11 +779,14 @@ events
             minute:'2-digit'
         }
     )
-    + " "
-    + event.title
-    + "<br>";  
 
-});    
+    + " "
+
+    + event.title
+
+    + "<br>";    
+
+});      
 
 
 const scheduleEl = document.getElementById(
@@ -731,13 +794,12 @@ const scheduleEl = document.getElementById(
 );
 
 
-if(scheduleEl){  
+if(scheduleEl){    
 
-    scheduleEl.innerHTML = 
-    scheduleHTML || "No Schedule"; 
+    scheduleEl.innerHTML =  
+    scheduleHTML || "No Schedule";   
 
 }
-
 
         // ===== Tasks ===== 
 
