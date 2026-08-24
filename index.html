@@ -1133,87 +1133,477 @@ function updateOutfit(temp, isRaining) {
             if(code===0) return "☀️"; if(code<=3) return "⛅"; if(code<=48) return "🌫️";
             if(code>=51 && code<=67) return "🌧️"; if(code>=71 && code<=86) return "🌨️"; if(code>=95) return "⛈️"; return "☁️";
         }
+// ===== Kid School Uniform =====
+// 根據星期顯示每日校服
 
-        // 區段16: 巴士停靠站和ETA邏輯 (優化穩定版)
+function updateSchoolUniform(){
+
+    let kTop = "";
+    let kOuter = "";
+    let kPants = "";
+    let kExtra = "";
+
+
+    const today = new Date();
+    const day = today.getDay();
+    // 0 Sun
+    // 1 Mon
+    // 2 Tue
+    // 3 Wed
+    // 4 Thu
+    // 5 Fri
+    // 6 Sat
+
+
+
+    if(day === 1 || day === 3){
+
+        // Monday & Wednesday
+
+        kTop =
+        "👔 Formal School Uniform";
+
+        kOuter =
+        "🧦 White Socks";
+
+        kPants =
+        "👞 Black Leather Shoes";
+
+        kExtra =
+        "🎒 Bring school bag";
+
+    }
+
+
+    else if(day === 2 || day === 4 || day === 5){
+
+        // Tuesday Thursday Friday
+
+        kTop =
+        "🏃 Sports School Uniform";
+
+        kOuter =
+        "🧦 White Socks";
+
+        kPants =
+        "👟 Plain-white Velcro Shoes";
+
+        kExtra =
+        "🎒 Bring school bag";
+
+    }
+
+
+    else{
+
+        kTop =
+        "🏠 No School";
+
+        kOuter =
+        "";
+
+        kPants =
+        "";
+
+        kExtra =
+        "";
+
+    }
+
+
+
+    // 更新原本 Kid's Outfit 四格
+
+    const elTop = document.getElementById('k-top');
+    const elOuter = document.getElementById('k-outer');
+    const elPants = document.getElementById('k-pants');
+    const elExtra = document.getElementById('k-extra');
+
+
+    if(elTop)
+        elTop.innerText = kTop;
+
+
+    if(elOuter)
+        elOuter.innerText = kOuter;
+
+
+    if(elPants)
+        elPants.innerText = kPants;
+
+
+    if(elExtra)
+        elExtra.innerText = kExtra;
+
+}
+
+// 區段16: 巴士停靠站和ETA邏輯 (自動方向版)
+
 let targetStopSeq = null;
+let targetDirection = null;
+
+
 
 async function findBusStop() {
-    const container = document.getElementById('bus-container');
-    if (!container) return;
-    
-    try {
-        // 1. 獲取該路線所有分站序列
-        const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${config.busRoute}/outbound/1`);
-        const data = await res.json();
-        const stops = data.data;
 
-        // 2. 獲取該路線所有分站的詳細名稱 (一次性獲取所有名稱比逐個 Fetch 快)
-        // 這裡為了簡化，我們直接在迴圈中尋找匹配
-        for (let s of stops) {
-            const detailRes = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${s.stop}`);
-            const detail = await detailRes.json();
-            
-            if (detail.data.name_tc.includes(config.busStopKey)) {
-                targetStopSeq = s.seq;
-                console.log(`Bus Stop Found: ${detail.data.name_tc} (Seq: ${targetStopSeq})`);
-                
-                // 立即更新一次並啟動計時器
-                fetchBusETA();
-                // 避免重複設定 Interval
-                if (window.busTimer) clearInterval(window.busTimer);
-                window.busTimer = setInterval(fetchBusETA, 30000); 
-                return;
+    const container = document.getElementById('bus-container');
+
+    if (!container) return;
+
+
+    try {
+
+
+        const directions = [
+            "outbound",
+            "inbound"
+        ];
+
+
+        let found = false;
+
+
+
+        for (const direction of directions) {
+
+
+            const res = await fetch(
+                `https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${config.busRoute}/${direction}/1`
+            );
+
+
+            const data = await res.json();
+
+
+            const stops = data.data || [];
+
+
+
+            console.log(
+                "Searching:",
+                config.busRoute,
+                direction
+            );
+
+
+
+            for (let s of stops) {
+
+
+                const detailRes = await fetch(
+                    `https://data.etabus.gov.hk/v1/transport/kmb/stop/${s.stop}`
+                );
+
+
+                const detail = await detailRes.json();
+
+
+
+                if(!detail.data) continue;
+
+
+
+                console.log(
+                    s.seq,
+                    detail.data.name_tc
+                );
+
+
+
+                if(
+                    detail.data.name_tc.includes(
+                        config.busStopKey
+                    )
+                ){
+
+
+                    targetStopSeq = s.seq;
+
+                    targetDirection = direction;
+
+
+
+                    console.log(
+                        "FOUND:",
+                        detail.data.name_tc,
+                        "Direction:",
+                        targetDirection,
+                        "Seq:",
+                        targetStopSeq
+                    );
+
+
+
+                    found = true;
+
+                    break;
+
+                }
+
+
             }
+
+
+
+            if(found) break;
+
+
         }
-        container.innerHTML = "Stop Not Found";
-    } catch(e) { 
-        console.error("Bus Stop Search Error:", e);
-        container.innerHTML = "Bus Service Temp Unavailable"; 
+
+
+
+        if(!found){
+
+
+            container.innerHTML =
+            "Stop Not Found";
+
+
+            return;
+
+        }
+
+
+
+
+        fetchBusETA();
+
+
+
+        if(window.busTimer){
+
+            clearInterval(
+                window.busTimer
+            );
+
+        }
+
+
+
+        window.busTimer = setInterval(
+            fetchBusETA,
+            30000
+        );
+
+
+
+
+    }catch(e){
+
+
+        console.error(
+            "Bus Stop Search Error:",
+            e
+        );
+
+
+        container.innerHTML =
+        "Bus Service Temp Unavailable";
+
+
     }
+
 }
 
-async function fetchBusETA() {
-    if (!targetStopSeq) return;
-    const container = document.getElementById('bus-container');
-    if (!container) return;
 
-    try {
-        const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-eta/${config.busRoute}/1`);
+
+
+
+
+
+async function fetchBusETA(){
+
+
+    if(!targetStopSeq) return;
+
+
+
+    const container =
+    document.getElementById(
+        'bus-container'
+    );
+
+
+
+    if(!container) return;
+
+
+
+    try{
+
+
+        const res = await fetch(
+            `https://data.etabus.gov.hk/v1/transport/kmb/route-eta/${config.busRoute}/1`
+        );
+
+
         const json = await res.json();
-        
-        // 篩選出正確的站點序列，並過濾掉沒有 ETA 的班次
+
+
+
+        console.log(
+            "ETA DATA:",
+            json.data
+        );
+
+
+
         const buses = json.data
-            .filter(b => parseInt(b.seq) === parseInt(targetStopSeq) && b.eta)
-            .sort((a, b) => new Date(a.eta) - new Date(b.eta))
-            .slice(0, 3);
+
+        .filter(
+
+            b =>
+
+            parseInt(b.seq)
+            ===
+            parseInt(targetStopSeq)
+
+            &&
+
+            b.eta
+
+        )
+
+
+        .sort(
+
+            (a,b)=>
+
+            new Date(a.eta)
+            -
+            new Date(b.eta)
+
+        )
+
+
+        .slice(0,3);
+
+
+
 
         container.innerHTML = "";
-        
-        if (buses.length === 0) {
-            container.innerHTML = "<div class='bus-row'>No Service</div>";
+
+
+
+        if(buses.length===0){
+
+
+            container.innerHTML =
+            `
+            <div class="bus-row">
+            No Service
+            </div>
+            `;
+
+
             return;
+
         }
 
-        buses.forEach((bus, index) => {
-            const etaTime = new Date(bus.eta);
-            const diffMins = Math.floor((etaTime - new Date()) / 60000);
-            
-            if (diffMins < -1) return; // 過期的不顯示
 
-            const div = document.createElement('div');
-            div.className = "bus-row" + (index === 0 ? " first" : "");
-            
-            const timeStr = etaTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            const minStr = (diffMins <= 0) ? "Arr" : diffMins + "m";
-            
-            div.innerHTML = `<span class="br-time">${timeStr}</span><span class="br-min">${minStr}</span>`;
+
+
+
+        buses.forEach(
+        (bus,index)=>{
+
+
+            const etaTime =
+            new Date(
+                bus.eta
+            );
+
+
+
+            const diffMins =
+            Math.floor(
+                (
+                etaTime-new Date()
+                )
+                /
+                60000
+            );
+
+
+
+            if(diffMins < -1) return;
+
+
+
+
+            const div =
+            document.createElement(
+                'div'
+            );
+
+
+
+            div.className =
+            "bus-row"
+            +
+            (
+            index===0
+            ?
+            " first"
+            :
+            ""
+            );
+
+
+
+            const timeStr =
+            etaTime.toLocaleTimeString(
+                'en-GB',
+                {
+                    hour:'2-digit',
+                    minute:'2-digit'
+                }
+            );
+
+
+
+            const minStr =
+            diffMins<=0
+            ?
+            "Arr"
+            :
+            diffMins+" min";
+
+
+
+            div.innerHTML =
+            `
+            <span class="br-time">
+            ${timeStr}
+            </span>
+
+            <span class="br-min">
+            ${minStr}
+            </span>
+            `;
+
+
+
             container.appendChild(div);
-        });
-    } catch(e) {
-        console.error("Bus ETA Error:", e);
-    }
-}
 
+
+
+        });
+
+
+
+    }catch(e){
+
+
+        console.error(
+            "Bus ETA Error:",
+            e
+        );
+
+
+    }
+
+}
         // --- 區段17: 初始化和定時更新任務 ---
 
 /**
@@ -1244,30 +1634,39 @@ function initDashboard() {
 // ==========================================
 // 擺喺所有程式碼嘅最後面 (Bottom of Script)
 // ==========================================
-window.onload = function() {
-    console.log("System Starting...");
+window.onload = function() { 
+    console.log("System Starting..."); 
 
-   // Google Calendar + Tasks
-if (typeof loadGoogleData === 'function') {
-    loadGoogleData();
-    setInterval(loadGoogleData,30000);
-}
 
-    // 1. 天氣 & 服裝：每 5 分鐘更新一次
-    fetchWeather();
-    setInterval(fetchWeather, 300000); 
-
-    // 2. 天文台警告 (最即時)：每 1 分鐘更新一次
-    if (typeof fetchHKOWarning === 'function') {
-        fetchHKOWarning();
-        setInterval(fetchHKOWarning, 60000); 
+    // Kid School Uniform
+    if (typeof updateSchoolUniform === 'function') {
+        updateSchoolUniform();
     }
 
-    // 3. 巴士 ETA：先搜尋站點，內部會自動啟動 30s 循環
-    if (typeof findBusStop === 'function') {
-        findBusStop(); 
-    }
-};
-    </script>
+
+    // Google Calendar + Tasks 
+    if (typeof loadGoogleData === 'function') { 
+        loadGoogleData(); 
+        setInterval(loadGoogleData,30000); 
+    } 
+
+
+    // 1. 天氣 & 服裝：每 5 分鐘更新一次 
+    fetchWeather(); 
+    setInterval(fetchWeather, 300000);  
+
+
+    // 2. 天文台警告 (最即時)：每 1 分鐘更新一次 
+    if (typeof fetchHKOWarning === 'function') { 
+        fetchHKOWarning(); 
+        setInterval(fetchHKOWarning, 60000);  
+    } 
+
+
+    // 3. 巴士 ETA：先搜尋站點，內部會自動啟動 30s 循環 
+    if (typeof findBusStop === 'function') { 
+        findBusStop();  
+    } 
+};    </script>
 </body>
 </html>
