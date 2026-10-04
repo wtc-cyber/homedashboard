@@ -688,182 +688,359 @@ function speakAlertContent() {
 
 // 區段12: 數據監聽（日程和任務）- 自動刷新版
 
-// Google Calendar + Google Tasks 讀取
-async function loadGoogleData(){ 
+const GOOGLE_GAS_URL =
+    "https://script.google.com/macros/s/AKfycbwQYH8acYSz11SzdR9HNhyOrSuMcMjRii1i1Ej1wwJ1wZNs9T8Qj4rB_EGD77AKxBoR8g/exec";
 
-    try{ 
+
+// =====================================================
+// Google Calendar + Google Tasks 讀取
+// =====================================================
+
+async function loadGoogleData(){
+
+    try{
 
         const res = await fetch(
-            "https://script.google.com/macros/s/AKfycbwQYH8acYSz11SzdR9HNhyOrSuMcMjRii1i1Ej1wwJ1wZNs9T8Qj4rB_EGD77AKxBoR8g/exec"
-        );  
-
-        const data = await res.json();  
-
-
-// ===== Calendar =====    
-
-const events = data.calendar || [];    
-
-let scheduleHTML = "";    
-
-
-events
-.sort((a,b)=>new Date(a.start)-new Date(b.start))
-.slice(0,5)
-.forEach(event=>{      
-
-    const start = new Date(event.start);      
-
-
-    // 判斷 Today / Tomorrow
-    const now = new Date();
-
-    const today = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate()
-    );
-
-    const eventDay = new Date(
-        start.getFullYear(),
-        start.getMonth(),
-        start.getDate()
-    );
-
-
-    const diffDays = Math.round(
-        (eventDay - today) / 
-        (1000 * 60 * 60 * 24)
-    );
-
-
-    let dateText = "";
-
-
-    if(diffDays === 0){
-
-        dateText = "Today";
-
-    }
-    else if(diffDays === 1){
-
-        dateText = "Tomorrow";
-
-    }
-    else{
-
-        dateText = start.toLocaleDateString(
-            'en-GB',
-            {
-                weekday:'short',
-                day:'2-digit',
-                month:'short'
-            }
+            GOOGLE_GAS_URL
         );
 
-    }
+        const data = await res.json();
 
 
-    scheduleHTML +=    
+        // =================================================
+        // Calendar
+        // =================================================
 
-    dateText
+        const events = data.calendar || [];
 
-    + " "
+        let scheduleHTML = "";
 
-    +
 
-    start.toLocaleTimeString(
-        'en-GB',
-        {
-            hour:'2-digit',
-            minute:'2-digit'
+        events
+        .sort(
+            (a,b) =>
+                new Date(a.start) -
+                new Date(b.start)
+        )
+        .slice(0,5)
+        .forEach(event => {
+
+            const start =
+                new Date(event.start);
+
+            const now =
+                new Date();
+
+            const today =
+                new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    now.getDate()
+                );
+
+            const eventDay =
+                new Date(
+                    start.getFullYear(),
+                    start.getMonth(),
+                    start.getDate()
+                );
+
+            const diffDays =
+                Math.round(
+                    (eventDay - today) /
+                    (1000 * 60 * 60 * 24)
+                );
+
+
+            let dateText = "";
+
+
+            if(diffDays === 0){
+
+                dateText = "Today";
+
+            }
+            else if(diffDays === 1){
+
+                dateText = "Tomorrow";
+
+            }
+            else{
+
+                dateText =
+                    start.toLocaleDateString(
+                        "en-GB",
+                        {
+                            weekday:"short",
+                            day:"2-digit",
+                            month:"short"
+                        }
+                    );
+
+            }
+
+
+            scheduleHTML +=
+                dateText +
+                " " +
+                start.toLocaleTimeString(
+                    "en-GB",
+                    {
+                        hour:"2-digit",
+                        minute:"2-digit"
+                    }
+                ) +
+                " " +
+                escapeHTML(event.title) +
+                "<br>";
+
+        });
+
+
+        const scheduleEl =
+            document.getElementById(
+                "schedule-text"
+            );
+
+
+        if(scheduleEl){
+
+            scheduleEl.innerHTML =
+                scheduleHTML ||
+                "No Schedule";
+
         }
-    )
-
-    + " "
-
-    + event.title
-
-    + "<br>";    
-
-});      
 
 
-const scheduleEl = document.getElementById(
-    "schedule-text"
-);
+        // =================================================
+        // Google Tasks
+        // =================================================
 
+        const tasks =
+            data.tasks || [];
 
-if(scheduleEl){    
-
-    scheduleEl.innerHTML =  
-    scheduleHTML || "No Schedule";   
-
-}
-
-        // ===== Tasks ===== 
-
-        const tasks = data.tasks || []; 
-
-        let taskHTML = ""; 
+        let taskHTML = "";
 
 
         tasks
         .slice(0,5)
-        .forEach(task=>{ 
+        .forEach(task => {
 
-            taskHTML +=
-            "☐ "
-            + task.title
-            + "<br>";
+            taskHTML += `
 
-        }); 
+                <div class="task-item">
+
+                    <input
+                        type="checkbox"
+                        class="task-checkbox"
+                        data-task-id="${escapeHTML(task.id)}"
+                        onchange="toggleGoogleTask(this)"
+                    >
+
+                    <span>
+                        ${escapeHTML(task.title)}
+                    </span>
+
+                </div>
+
+            `;
+
+        });
 
 
-        const taskEl = document.getElementById(
-            "task-list"
-        );
+        const taskEl =
+            document.getElementById(
+                "task-list"
+            );
 
 
-        if(taskEl){ 
+        if(taskEl){
 
             taskEl.innerHTML =
-            taskHTML || "No Tasks";
+                taskHTML ||
+                "No Tasks";
 
         }
 
 
-    } 
-    catch(e){   
+    }
+    catch(error){
 
-        console.log(
-            "Google Data Error",
-            e
-        );   
-
-
-        const scheduleEl = document.getElementById(
-            "schedule-text"
+        console.error(
+            "Google Data Error:",
+            error
         );
 
-        if(scheduleEl){ 
-            scheduleEl.innerHTML = "Calendar Error";
-        } 
+
+        const scheduleEl =
+            document.getElementById(
+                "schedule-text"
+            );
 
 
-        const taskEl = document.getElementById(
-            "task-list"
-        );
+        if(scheduleEl){
 
-        if(taskEl){ 
-            taskEl.innerHTML = "Task Error";
-        } 
+            scheduleEl.innerHTML =
+                "Calendar Error";
 
-    }   
+        }
+
+
+        const taskEl =
+            document.getElementById(
+                "task-list"
+            );
+
+
+        if(taskEl){
+
+            taskEl.innerHTML =
+                "Task Error";
+
+        }
+
+    }
 
 }
 
-// 區段13: 天氣和預報邏輯 - 完整整合修正版
+
+
+// =====================================================
+// Google Task：完成任務
+// =====================================================
+
+async function toggleGoogleTask(checkbox){
+
+    const taskId =
+        checkbox.dataset.taskId;
+
+
+    if(!taskId){
+
+        console.error(
+            "No Google Task ID"
+        );
+
+        checkbox.checked = false;
+
+        return;
+
+    }
+
+
+    // 防止重複點擊
+    checkbox.disabled = true;
+
+
+    try{
+
+        const url =
+            GOOGLE_GAS_URL +
+            "?action=completeTask" +
+            "&taskId=" +
+            encodeURIComponent(taskId);
+
+
+        console.log(
+            "Completing Google Task:",
+            taskId
+        );
+
+
+        const res =
+            await fetch(url);
+
+
+        const result =
+            await res.json();
+
+
+        console.log(
+            "Google Task Update:",
+            result
+        );
+
+
+        // =============================================
+        // 更新失敗
+        // =============================================
+
+        if(!result.success){
+
+            checkbox.checked = false;
+
+            alert(
+                "Google Task 更新失敗\n\n" +
+                (
+                    result.error ||
+                    "Unknown error"
+                )
+            );
+
+            return;
+
+        }
+
+
+        // =============================================
+        // 更新成功
+        // =============================================
+
+        console.log(
+            "Google Task completed:",
+            taskId
+        );
+
+
+        // 重新讀取 Google Tasks
+        // 已完成的 Task 會被 GAS 自動過濾
+        // 所以會從 Dashboard 消失
+
+        await loadGoogleData();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Google Task Update Error:",
+            error
+        );
+
+
+        checkbox.checked = false;
+
+
+        alert(
+            "無法更新 Google Task\n\n" +
+            error
+        );
+
+    }
+    finally{
+
+        checkbox.disabled = false;
+
+    }
+
+}
+
+
+
+// =====================================================
+// HTML Escape
+// =====================================================
+
+function escapeHTML(str){
+
+    return String(str || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}// 區段13: 天氣和預報邏輯 - 完整整合修正版
 function formatTime(date) {
     return String(date.getHours()).padStart(2, '0') + ":" + String(date.getMinutes()).padStart(2, '0');
 }
@@ -1634,39 +1811,90 @@ function initDashboard() {
 // ==========================================
 // 擺喺所有程式碼嘅最後面 (Bottom of Script)
 // ==========================================
+
 window.onload = function() { 
+
     console.log("System Starting..."); 
 
 
+    // ==========================================
     // Kid School Uniform
+    // ==========================================
+
     if (typeof updateSchoolUniform === 'function') {
         updateSchoolUniform();
     }
 
 
-    // Google Calendar + Tasks 
+    // ==========================================
+    // Google Calendar + Tasks
+    // ==========================================
+
     if (typeof loadGoogleData === 'function') { 
+
         loadGoogleData(); 
-        setInterval(loadGoogleData,30000); 
-    } 
+
+        setInterval(
+            loadGoogleData,
+            30000
+        ); 
+
+    }
 
 
-    // 1. 天氣 & 服裝：每 5 分鐘更新一次 
+    // ==========================================
+    // 天氣 & 服裝：每 5 分鐘更新一次
+    // ==========================================
+
     fetchWeather(); 
-    setInterval(fetchWeather, 300000);  
+
+    setInterval(
+        fetchWeather,
+        300000
+    );
 
 
-    // 2. 天文台警告 (最即時)：每 1 分鐘更新一次 
+    // ==========================================
+    // 天文台警告：每 1 分鐘更新一次
+    // ==========================================
+
     if (typeof fetchHKOWarning === 'function') { 
+
         fetchHKOWarning(); 
-        setInterval(fetchHKOWarning, 60000);  
-    } 
+
+        setInterval(
+            fetchHKOWarning,
+            60000
+        );
+
+    }
 
 
-    // 3. 巴士 ETA：先搜尋站點，內部會自動啟動 30s 循環 
+    // ==========================================
+    // 巴士 ETA
+    // 先搜尋站點，內部會自動啟動 30s 循環
+    // ==========================================
+
     if (typeof findBusStop === 'function') { 
-        findBusStop();  
-    } 
-};    </script>
+
+        findBusStop();
+
+    }
+
+};
+
+
+// ==========================================
+// Google Task 全域函數
+// ==========================================
+// HTML 入面使用：
+// onchange="toggleGoogleTask(this)"
+//
+// 因為主程式係 <script type="module">
+// 所以要將真正 function 暴露去 window。
+// ==========================================
+
+window.toggleGoogleTask = toggleGoogleTask;
+</script>
 </body>
 </html>
