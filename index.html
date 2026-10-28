@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V51</title>
+    <title>Smart Home Dashboard V55</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -27,12 +27,12 @@
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-180%); } }
         .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; position: relative; }
         .clock-left { display: flex; align-items: flex-end; gap: 15px; }
-        .clock-time { font-size: 3em; font-weight: bold; line-height: 1; letter-spacing: -2px; }
+        .clock-time { font-size: 3em; font-weight: bold; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
         .warning-container { display: flex; gap: 5px; height: 40px; align-items: center; margin-bottom: 2px; flex-wrap: wrap; }
         .warning-text-badge { display: inline-flex; align-items: center; background: #2c0b0e; border: 1px solid #5a1a21; color: #ffcccc; padding: 5px 10px; border-radius: 8px; font-size: 0.85em; font-weight: bold; white-space: nowrap; box-shadow: 0 0 8px rgba(231,76,60,0.3); }
         .clock-date { font-size: 1.1em; color: #aaa; text-align: right; }
         .w-main-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; margin-bottom: 0; }
-        .w-temp-big { font-size: 3.5em; font-weight: bold; line-height: 1; margin-left: -5px; letter-spacing: -3px; }
+        .w-temp-big { font-size: 3.5em; font-weight: bold; line-height: 1; margin-left: -5px; letter-spacing: -3px; font-variant-numeric: tabular-nums; }
         .w-icon-big { font-size: 2.5em; margin-right: 10px; }
         .w-range-box { text-align: right; display: flex; flex-direction: column; justify-content: center; padding-right: 5px; }
         .wr-high { font-size: 1.6em; color: #ff7675; font-weight: bold; }
@@ -40,19 +40,95 @@
         #w-station { text-align: right; color: #888; font-size: 0.85em; margin-bottom: 12px; font-style: italic; }
         .w-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
         .w-item { text-align: center; background: #222; border-radius: 6px; padding: 6px; }
-        .w-label { font-size: 0.7em; color: #888; display: block; }
-        .w-val { font-size: 1.1em; font-weight: bold; color: #ddd; }
+        .w-label { font-size: 0.7em; color: #999; display: block; }
+        .w-val { font-size: 1.1em; font-weight: bold; color: #ddd; font-variant-numeric: tabular-nums; }
         .forecast-row { display: flex; gap: 8px; margin-top: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
         .f-day { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
         .fd-name { font-size: 0.8em; color: #aaa; margin-bottom: 2px; text-transform: uppercase; }
         .fd-icon { font-size: 1.5em; margin-bottom: 2px; }
         .fd-temp { font-size: 1em; font-weight: bold; color: #fff; }
-        .outfit-card { flex: 1; background: #1a1a1a; border-left: 6px solid var(--accent); padding: 15px; display: flex; flex-direction: column; }
-        .outfit-header { font-size: 1.3em; font-weight: bold; color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .outfit-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; flex: 1; overflow: hidden; }
-        .outfit-box { background: #252525; padding: 8px 12px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; }
-        .ob-title { color: #888; font-size: 0.75em; text-transform: uppercase; margin-bottom: 2px; }
-        .ob-content { font-size: 1.1em; color: #fff; line-height: 1.2; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ===== Commute Card ===== */
+        .commute-card {
+            flex: 1;
+            background: #0d111a;
+            border-left: 6px solid #2196F3;
+            padding: 12px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+            transition: border-left-color 0.5s;
+        }
+        .commute-header {
+            font-size: 1.1em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+        .freshness-dot { font-size: 0.75em; color: #4CAF50; transition: color 0.3s; }
+        .commute-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .commute-item {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border-left: 3px solid transparent;
+            transition: border-left-color 0.4s;
+        }
+        .commute-label {
+            font-size: 0.7em;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .commute-time {
+            font-size: 2em;
+            font-weight: bold;
+            color: #fff;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .commute-sub { font-size: 0.75em; color: #aaa; margin-top: 2px; }
+        .roundabout-status {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 8px 10px;
+            border-left: 3px solid #555;
+            transition: border-left-color 0.4s;
+        }
+        .roundabout-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .roundabout-badge {
+            font-size: 0.75em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            background: #444;
+            color: #fff;
+        }
+        .roundabout-detail { font-size: 0.75em; color: #aaa; line-height: 1.3; }
+
         .col-side { display: flex; flex-direction: column; gap: 10px; height: 100%; }
         .schedule-box { flex: 0 0 35%; border-top: 4px solid #FFD700; overflow: hidden; display: flex; flex-direction: column; }
         .side-title { font-size: 1.1em; color: #aaa; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 4px; }
@@ -60,8 +136,8 @@
         .task-box { flex: 0 0 20%; border-top: 4px solid var(--accent); min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
         .task-title { font-size: 1.2em; color: var(--accent); padding-bottom: 5px; margin-bottom: 5px; font-weight: bold; border-bottom: 1px solid #333; }
         .task-list { list-style: none; padding: 0; overflow-y: auto; margin: 0; flex: 1; }
-        .task-item { padding: 5px; border-bottom: 1px solid #333; display: flex; align-items: flex-start; font-size: 1em; gap: 8px; }
-        .task-checkbox { width: 18px; height: 18px; margin-right: 8px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+        .task-item { padding: 5px; border-bottom: 1px solid #333; display: flex; align-items: flex-start; font-size: 1em; gap: 8px; cursor: pointer; }
+        .task-checkbox { width: 22px; height: 22px; margin-right: 8px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
         .bus-box { flex: 0 0 45%; border-top: 4px solid #00bfff; background: #1a1111; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding-bottom: 10px; }
         #bus-container { flex: 1; overflow-y: auto; }
         .bus-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 25px; }
@@ -70,27 +146,30 @@
         .bus-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #2a1515; border-radius: 6px; height: 38px; box-sizing: border-box; }
         .bus-row.first { background: #d63031; }
         .bus-row.first * { color: white !important; font-weight: bold; }
-        .br-time { font-family: monospace; font-size: 1.3em; color: #eee; }
-        .br-min { font-size: 1em; color: #aaa; }
+        .bus-row.soon { background: #8b1a1a; }
+        .br-time { font-family: monospace; font-size: 1.3em; color: #eee; font-variant-numeric: tabular-nums; }
+        .br-min { font-size: 1em; color: #aaa; font-weight: bold; }
+        .br-min.soon { color: #ffeb3b; }
         #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #start-btn { font-size: 3em; padding: 30px 60px; border-radius: 20px; border: 4px solid var(--accent); background: black; color: var(--accent); cursor: pointer; font-weight: bold; }
         #night-saver { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 1000; overflow: hidden; cursor: pointer; }
         #ns-content { position: absolute; width: 300px; padding: 20px; text-align: center; color: #333; transition: all 1s ease; }
-        #ns-time { font-size: 6em; font-weight: bold; color: #222; font-family: monospace; }
+        #ns-time { font-size: 6em; font-weight: bold; color: #222; font-family: monospace; font-variant-numeric: tabular-nums; }
         body.night-mode #night-saver { display: block; }
         body.night-mode #orbit-wrapper { opacity: 0; }
         body.night-mode .top-btn-group { display: none; }
         #settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20,20,20,0.95); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .settings-box { background: #222; width: 500px; padding: 30px; border-radius: 16px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .settings-box { background: #222; width: 520px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 16px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .set-title { font-size: 1.8em; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; color: #fff; }
-        .set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .set-label { font-size: 1.2em; color: #ccc; }
-        .set-input { background: #333; border: 1px solid #555; color: white; padding: 8px; border-radius: 6px; font-size: 1.1em; width: 150px; text-align: right; }
-        .set-select { width: 168px; }
+        .set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
+        .set-label { font-size: 1.1em; color: #ccc; flex: 1; }
+        .set-input { background: #333; border: 1px solid #555; color: white; padding: 8px; border-radius: 6px; font-size: 1em; width: 160px; text-align: right; }
+        .set-select { width: 178px; }
         .set-btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
         .set-btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 1.1em; cursor: pointer; font-weight: bold; }
         .btn-save { background: var(--accent); color: white; }
         .btn-cancel { background: #444; color: white; }
+        .set-section { margin-top: 18px; padding-top: 12px; border-top: 1px dashed #444; color: #888; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -108,6 +187,8 @@
     <div id="settings-overlay">
         <div class="settings-box">
             <div class="set-title">⚙️ Settings</div>
+
+            <div class="set-section">Weather</div>
             <div class="set-row">
                 <span class="set-label">Weather Station</span>
                 <select id="cfg-weather-station" class="set-input set-select">
@@ -137,11 +218,21 @@
                     <option value="Tai Mei Tuk">大美督 (Tai Mei Tuk)</option>
                 </select>
             </div>
+
+            <div class="set-section">Night Mode</div>
             <div class="set-row"><span class="set-label">Night Start (Hr)</span><input type="number" id="cfg-night-start" class="set-input" min="0" max="23"></div>
             <div class="set-row"><span class="set-label">Night End (Hr)</span><input type="number" id="cfg-night-end" class="set-input" min="0" max="23"></div>
             <div class="set-row"><span class="set-label">Wake Time (Min)</span><input type="number" id="cfg-wake-mins" class="set-input" min="1" max="60"></div>
+
+            <div class="set-section">Bus</div>
             <div class="set-row"><span class="set-label">Bus Route</span><input type="text" id="cfg-bus-route" class="set-input"></div>
             <div class="set-row"><span class="set-label">Stop Keyword</span><input type="text" id="cfg-bus-stop" class="set-input"></div>
+
+            <div class="set-section">Driving (GAS Proxy)</div>
+            <div class="set-row"><span class="set-label">Home (Lat,Lng)</span><input type="text" id="cfg-home-latlng" class="set-input" placeholder="22.501,114.128"></div>
+            <div class="set-row"><span class="set-label">School 1 (Lat,Lng)</span><input type="text" id="cfg-school1-latlng" class="set-input" placeholder="22.497,114.143"></div>
+            <div class="set-row"><span class="set-label">School 2 (Lat,Lng)</span><input type="text" id="cfg-school2-latlng" class="set-input" placeholder="22.438,114.038"></div>
+
             <div class="set-btn-row">
                 <button class="set-btn btn-cancel" onclick="closeSettings()">Cancel</button>
                 <button class="set-btn btn-save" onclick="saveSettings()">Save & Reload</button>
@@ -181,16 +272,34 @@
                         </div>
                         <div class="forecast-row" id="forecast-container"></div>
                     </div>
-                    <div class="card outfit-card" id="outfit-card">
-                        <div class="outfit-header"><span>👶 Kid's Outfit</span></div>
-                        <div class="outfit-grid">
-                            <div class="outfit-box"><span class="ob-title">👕 Top</span><div class="ob-content" id="k-top">...</div></div>
-                            <div class="outfit-box"><span class="ob-title">🧥 Outer</span><div class="ob-content" id="k-outer">...</div></div>
-                            <div class="outfit-box"><span class="ob-title">👖 Bottom</span><div class="ob-content" id="k-pants">...</div></div>
-                            <div class="outfit-box"><span class="ob-title">🎒 Extra</span><div class="ob-content" id="k-extra">...</div></div>
+
+                    <div class="card commute-card" id="commute-card">
+                        <div class="commute-header">
+                            <span>🚗 Family Commute</span>
+                            <span class="freshness-dot" id="commute-fresh" title="Loading...">●</span>
+                        </div>
+                        <div class="commute-grid">
+                            <div class="commute-item" id="route-school1">
+                                <span class="commute-label" id="label-school1">🏫 Fanling Rhenish</span>
+                                <span class="commute-time" id="time-school1">--</span>
+                                <span class="commute-sub" id="sub-school1">min</span>
+                            </div>
+                            <div class="commute-item" id="route-school2">
+                                <span class="commute-label" id="label-school2">🏫 Yuen Long Gov't</span>
+                                <span class="commute-time" id="time-school2">--</span>
+                                <span class="commute-sub" id="sub-school2">min</span>
+                            </div>
+                        </div>
+                        <div class="roundabout-status" id="roundabout-box">
+                            <div class="roundabout-head">
+                                <span>🔄 雞嶺迴旋處</span>
+                                <span class="roundabout-badge" id="roundabout-badge">--</span>
+                            </div>
+                            <div class="roundabout-detail" id="roundabout-detail">Loading...</div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-side">
                     <div class="card schedule-box" id="schedule-box">
                         <div class="side-title">📅 Schedule</div>
@@ -215,13 +324,22 @@
     </div>
 
     <script>
+        // ============================================
+        // GAS Proxy URL
+        // ============================================
+        const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbwH6Q7IBhPCpZ6m3MEutySdljh7P1Mz2NacMIhBH9fvfF8yYq0K8DlzWvfLZvi696CfLw/exec';
+
         let config = {
             nightStart: 0, nightEnd: 6, wakeMins: 5,
             busRoute: "273B", busStopKey: "御景峰",
-            weatherStation: "Hong Kong Observatory"
+            weatherStation: "Hong Kong Observatory",
+            homeLatLng: "22.501,114.128",
+            school1LatLng: "22.497,114.143",
+            school1Name: "Fanling Rhenish",
+            school2LatLng: "22.438,114.038",
+            school2Name: "Yuen Long Gov't"
         };
 
-        // 各氣象站大約座標（供 Open-Meteo 使用）
         const STATION_COORDS = {
             "Sheung Shui": [22.50, 114.13], "Hong Kong Observatory": [22.302, 114.174], "King's Park": [22.312, 114.173],
             "Wong Chuk Hang": [22.248, 114.174], "Ta Kwu Ling": [22.528, 114.157], "Tai Po": [22.45, 114.17],
@@ -234,7 +352,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v49');
+            const stored = localStorage.getItem('sh_config_v55');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -243,8 +361,13 @@
             set('cfg-wake-mins', config.wakeMins);
             set('cfg-bus-route', config.busRoute);
             set('cfg-bus-stop', config.busStopKey);
+            set('cfg-home-latlng', config.homeLatLng);
+            set('cfg-school1-latlng', config.school1LatLng);
+            set('cfg-school2-latlng', config.school2LatLng);
             document.getElementById('bus-badge').innerText = config.busRoute;
             document.getElementById('bus-name').innerText = config.busStopKey;
+            document.getElementById('label-school1').innerText = `🏫 ${config.school1Name}`;
+            document.getElementById('label-school2').innerText = `🏫 ${config.school2Name}`;
         }
 
         window.openSettings = () => document.getElementById('settings-overlay').style.display = 'flex';
@@ -257,7 +380,10 @@
             config.wakeMins   = Math.max(1, num('cfg-wake-mins', 5));
             config.busRoute   = document.getElementById('cfg-bus-route').value.trim() || "273B";
             config.busStopKey = document.getElementById('cfg-bus-stop').value.trim();
-            localStorage.setItem('sh_config_v49', JSON.stringify(config));
+            config.homeLatLng = document.getElementById('cfg-home-latlng').value.trim() || "22.501,114.128";
+            config.school1LatLng = document.getElementById('cfg-school1-latlng').value.trim() || "22.497,114.143";
+            config.school2LatLng = document.getElementById('cfg-school2-latlng').value.trim() || "22.438,114.038";
+            localStorage.setItem('sh_config_v55', JSON.stringify(config));
             location.reload();
         };
 
@@ -347,7 +473,9 @@
             } catch(e) {}
         };
 
+        // ============================================
         // Google Calendar + Tasks
+        // ============================================
         const GOOGLE_GAS_URL = "https://script.google.com/macros/s/AKfycbwQYH8acYSz11SzdR9HNhyOrSuMcMjRii1i1Ej1wwJ1wZNs9T8Qj4rB_EGD77AKxBoR8g/exec";
 
         async function loadGoogleData() {
@@ -375,8 +503,8 @@
                 const tasks = data.tasks || [];
                 let taskHTML = "";
                 tasks.slice(0, 5).forEach(task => {
-                    taskHTML += `<li class="task-item">
-                        <input type="checkbox" class="task-checkbox" data-task-id="${escapeHTML(task.id)}" onchange="toggleGoogleTask(this)">
+                    taskHTML += `<li class="task-item" onclick="if(event.target.tagName!=='INPUT'){this.querySelector('input').click();}">
+                        <input type="checkbox" class="task-checkbox" data-task-id="${escapeHTML(task.id)}" onchange="toggleGoogleTask(this)" onclick="event.stopPropagation()">
                         <span>${escapeHTML(task.title)}</span>
                     </li>`;
                 });
@@ -406,7 +534,9 @@
             return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
+        // ============================================
         // Weather
+        // ============================================
         function formatTime(date) { return String(date.getHours()).padStart(2, '0') + ":" + String(date.getMinutes()).padStart(2, '0'); }
 
         const stationMap = {
@@ -422,7 +552,6 @@
         async function fetchWeather() {
             let currentTemp = null, hkoIconCode = 50, stationName = "";
 
-            // ① HKO 現時天氣（失敗都繼續，唔 return）
             try {
                 const res = await fetch(
                     'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en',
@@ -449,14 +578,12 @@
                 console.error("HKO Current Weather Error:", e);
             }
 
-            // ② Open-Meteo（體感、風、降雨機率、今日最高／低）
             let maxRainProb = 0;
             try {
                 const coordKey = stationName || config.weatherStation || "Hong Kong Observatory";
                 const coord = STATION_COORDS[coordKey] || STATION_COORDS["Hong Kong Observatory"];
-                const lat = coord[0], lon = coord[1];
                 const omRes = await fetch(
-                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+                    `https://api.open-meteo.com/v1/forecast?latitude=${coord[0]}&longitude=${coord[1]}` +
                     `&current=apparent_temperature,wind_speed_10m` +
                     `&hourly=precipitation_probability` +
                     `&daily=temperature_2m_max,temperature_2m_min` +
@@ -475,11 +602,6 @@
                 console.error("Open-Meteo Error:", e);
             }
 
-            // ③ 穿搭 + 走馬燈（保護 currentTemp）
-            if (currentTemp != null) {
-                const isRainingNow = (maxRainProb >= 50) || [53, 54, 62, 63, 64, 65].includes(hkoIconCode);
-                updateOutfit(currentTemp, isRainingNow);
-            }
             const actionBox = document.getElementById('action-tip');
             if (actionBox) {
                 if (maxRainProb >= 50) {
@@ -490,7 +612,6 @@
                 }
             }
 
-            // ④ HKO 九天預報
             try {
                 const fndRes = await fetch(
                     'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en',
@@ -520,7 +641,9 @@
             }
         }
 
+        // ============================================
         // Weather Warnings (English)
+        // ============================================
         const warnMap = {
             'WFIREY': { icon: '🔥', text: 'Yellow Fire', level: 2 }, 'WFIRER': { icon: '🔥', text: 'Red Fire', level: 3 },
             'WRAINA': { icon: '🌧️', text: 'Amber Rain', level: 2 }, 'WRAINR': { icon: '🌧️', text: 'Red Rain', level: 3 },
@@ -569,24 +692,6 @@
             } catch (e) { console.error("HKO Warning Error:", e); }
         }
 
-        // Outfit
-        function updateOutfit(temp, isRaining) {
-            let kTop = "", kOuter = "", kPants = "", kExtra = "", color = "#4CAF50";
-            if (temp <= 12) { color = "#34495e"; kTop = "👕 Heattech + Thick Sweater"; kOuter = "🧥 Down / Windproof Coat"; kPants = "👖 Thick Pants"; kExtra = "🧣 Scarf & Gloves"; }
-            else if (temp <= 17) { color = "#2980b9"; kTop = "👕 Long-sleeve / Light Sweater"; kOuter = "🧥 Padded Jacket"; kPants = "👖 Jeans"; kExtra = "🧅 Layer Up"; }
-            else if (temp <= 23) { color = "#27ae60"; kTop = "👕 T-shirt / Light Long-sleeve"; kOuter = "🧥 Light Jacket"; kPants = "👖 Casual Pants"; kExtra = "👟 Comfortable Shoes"; }
-            else if (temp <= 27) { color = "#f39c12"; kTop = "👕 Short-sleeve Tee"; kOuter = "❄️ AC Jacket"; kPants = "🩳 Light Pants"; kExtra = "💦 Wet Wipes"; }
-            else { color = "#c0392b"; kTop = "🎽 Breathable Vest"; kOuter = "☀️ UV Shirt"; kPants = "🩳 Shorts"; kExtra = "🪭 Portable Fan"; }
-            if (isRaining) kExtra = "☔ Bring Umbrella";
-            const e = id => document.getElementById(id);
-            if (e('k-top')) e('k-top').innerText = kTop;
-            if (e('k-outer')) e('k-outer').innerText = kOuter;
-            if (e('k-pants')) e('k-pants').innerText = kPants;
-            if (e('k-extra')) e('k-extra').innerText = kExtra;
-            if (e('outfit-card')) e('outfit-card').style.borderLeftColor = color;
-        }
-
-        // HKO 天氣圖示代碼（50-93 全部係天氣現象）
         function getHKOIcon(code) {
             code = parseInt(code);
             if (code >= 50 && code <= 54) return "☀️";
@@ -597,7 +702,142 @@
             return "☁️";
         }
 
+        // ============================================
+        // Commute (via GAS Proxy → Google Routes API)
+        // ============================================
+        let lastCommuteUpdate = 0;
+
+        async function getDrivingTime(origin, destination) {
+            const [originLat, originLng] = origin.split(',').map(Number);
+            const [destLat, destLng] = destination.split(',').map(Number);
+
+            try {
+                const res = await fetch(GAS_PROXY_URL, {
+                    method: 'POST',
+                    // text/plain 避免觸發 CORS preflight (OPTIONS)
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        origin: { lat: originLat, lng: originLng },
+                        destination: { lat: destLat, lng: destLng }
+                    }),
+                    redirect: 'follow',
+                    cache: 'no-store'
+                });
+
+                const data = await res.json();
+
+                // GAS 錯誤回應
+                if (data.error) {
+                    return { error: 'GAS_ERROR', msg: data.error };
+                }
+
+                // Google Routes API 成功回應
+                if (!data.routes || data.routes.length === 0) {
+                    return { error: 'NO_ROUTE', msg: 'No route found' };
+                }
+
+                const route = data.routes[0];
+                const durationSeconds = parseInt(String(route.duration).replace('s', '')) || 0;
+                const distanceMeters = route.distanceMeters || 0;
+
+                return {
+                    minutes: Math.round(durationSeconds / 60),
+                    distance: (distanceMeters / 1000).toFixed(1) + ' km',
+                    rawDuration: durationSeconds
+                };
+            } catch (e) {
+                console.error("GAS Proxy Error:", e);
+                return { error: 'NETWORK', msg: e.message };
+            }
+        }
+
+        function setRouteDisplay(prefix, result, thresholds) {
+            const timeEl = document.getElementById(`time-${prefix}`);
+            const subEl = document.getElementById(`sub-${prefix}`);
+            const box = document.getElementById(`route-${prefix}`);
+            if (!timeEl || !subEl || !box) return;
+
+            if (!result || result.error) {
+                timeEl.textContent = "ERR";
+                subEl.textContent = result?.error === 'GAS_ERROR' ? 'GAS Error' : (result?.error || 'No data');
+                timeEl.style.color = "#f44336";
+                box.style.borderLeftColor = "#555";
+                return;
+            }
+
+            timeEl.textContent = result.minutes;
+            subEl.textContent = result.distance;
+            timeEl.style.color = "#fff";
+
+            if (result.minutes > thresholds[1]) {
+                box.style.borderLeftColor = "#F44336";
+            } else if (result.minutes > thresholds[0]) {
+                box.style.borderLeftColor = "#FF9800";
+            } else {
+                box.style.borderLeftColor = "#4CAF50";
+            }
+        }
+
+        function updateRoundaboutStatus(school1Result) {
+            const badge = document.getElementById('roundabout-badge');
+            const detail = document.getElementById('roundabout-detail');
+            const box = document.getElementById('roundabout-box');
+            if (!badge || !detail || !box) return;
+
+            let statusText = "Normal";
+            let statusColor = "#4CAF50";
+            let detailText = "Traffic flowing normally";
+
+            if (school1Result && !school1Result.error) {
+                if (school1Result.minutes > 12) {
+                    statusText = "Congested";
+                    statusColor = "#F44336";
+                    detailText = "Likely congested. Allow extra time.";
+                } else if (school1Result.minutes > 8) {
+                    statusText = "Slow";
+                    statusColor = "#FF9800";
+                    detailText = "Heavier traffic, but passable.";
+                } else {
+                    detailText = "Clear via main roads";
+                }
+            } else {
+                statusText = "N/A";
+                statusColor = "#666";
+                detailText = school1Result?.error === 'NETWORK' ? "Network error" : "Data unavailable";
+            }
+
+            badge.textContent = statusText;
+            badge.style.background = statusColor;
+            detail.textContent = detailText;
+            box.style.borderLeftColor = statusColor;
+        }
+
+        async function updateCommuteData() {
+            const [school1, school2] = await Promise.all([
+                getDrivingTime(config.homeLatLng, config.school1LatLng),
+                getDrivingTime(config.homeLatLng, config.school2LatLng)
+            ]);
+
+            setRouteDisplay('school1', school1, [8, 12]);
+            setRouteDisplay('school2', school2, [18, 25]);
+            updateRoundaboutStatus(school1);
+
+            lastCommuteUpdate = Date.now();
+            updateCommuteFreshness();
+        }
+
+        function updateCommuteFreshness() {
+            const dot = document.getElementById('commute-fresh');
+            if (!dot || !lastCommuteUpdate) return;
+            const ageMin = (Date.now() - lastCommuteUpdate) / 60000;
+            dot.style.color = ageMin < 3 ? '#4CAF50' : ageMin < 10 ? '#ff9800' : '#f44336';
+            dot.title = ageMin < 1 ? 'Just updated' : `Updated ${Math.round(ageMin)} min ago`;
+        }
+        setInterval(updateCommuteFreshness, 15000);
+
+        // ============================================
         // Bus ETA
+        // ============================================
         let targetStopId = null;
         let targetStopSeq = null;
         let targetDirection = null;
@@ -658,16 +898,22 @@
                     const etaTime = new Date(bus.eta);
                     const diffMins = Math.floor((etaTime - new Date()) / 60000);
                     const div = document.createElement('div');
-                    div.className = "bus-row" + (index === 0 ? " first" : "");
+                    let cls = "bus-row";
+                    if (index === 0) cls += " first";
+                    if (diffMins <= 5) cls += " soon";
+                    div.className = cls;
                     const timeStr = etaTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
                     const minStr = diffMins <= 0 ? "Arr" : diffMins + " min";
-                    div.innerHTML = `<span class="br-time">${timeStr}</span><span class="br-min">${minStr}</span>`;
+                    const minCls = diffMins <= 5 ? "br-min soon" : "br-min";
+                    div.innerHTML = `<span class="br-time">${timeStr}</span><span class="${minCls}">${minStr}</span>`;
                     container.appendChild(div);
                 });
             } catch (e) { console.error("Bus ETA Error:", e); }
         }
 
+        // ============================================
         // Init
+        // ============================================
         window.onload = function() {
             loadConfig();
             updateClock(); setInterval(updateClock, 1000);
@@ -675,7 +921,8 @@
             fetchHKOWarning(); setInterval(fetchHKOWarning, 60 * 1000);
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
-            console.log("Dashboard V51 ready");
+            updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
+            console.log("Dashboard V55 ready");
         };
     </script>
 </body>
