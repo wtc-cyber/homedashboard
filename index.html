@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V59</title>
+    <title>Smart Home Dashboard V60</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -48,114 +48,40 @@
         .fd-icon { font-size: 1.5em; margin-bottom: 2px; }
         .fd-temp { font-size: 1em; font-weight: bold; color: #fff; }
 
-        /* ===== Commute Card ===== */
         .commute-card {
-            flex: 1;
-            background: #0d111a;
-            border-left: 6px solid #2196F3;
-            padding: 12px 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow: hidden;
+            flex: 1; background: #0d111a; border-left: 6px solid #2196F3;
+            padding: 12px 15px; display: flex; flex-direction: column; gap: 8px; overflow: hidden;
             transition: border-left-color 0.5s;
         }
         .commute-header {
-            font-size: 1.1em;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 4px;
+            font-size: 1.1em; font-weight: bold; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid #333; padding-bottom: 4px;
         }
         .commute-update-time { font-size: 0.7em; color: #888; font-weight: normal; }
 
         .walk-to-car {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 6px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85em;
-            border-left: 3px solid #FFC107;
+            background: #1a1a1a; border-radius: 8px; padding: 6px 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.85em; border-left: 3px solid #FFC107;
         }
         .walk-label { color: #aaa; }
         .walk-time { font-weight: bold; color: #FFC107; font-variant-numeric: tabular-nums; font-size: 1.1em; }
         .walk-distance { color: #888; font-size: 0.85em; }
 
-        .commute-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
+        .commute-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .commute-item {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            border-left: 3px solid transparent;
-            transition: border-left-color 0.4s;
+            background: #1a1a1a; border-radius: 10px; padding: 8px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            border-left: 3px solid transparent; transition: border-left-color 0.4s;
         }
-        .commute-label {
-            font-size: 0.7em;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
-        .commute-time {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #fff;
-            line-height: 1.1;
-            font-variant-numeric: tabular-nums;
-        }
+        .commute-label { font-size: 0.7em; color: #999; text-transform: uppercase; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .commute-time { font-size: 1.8em; font-weight: bold; color: #fff; line-height: 1.1; font-variant-numeric: tabular-nums; }
         .commute-sub { font-size: 0.7em; color: #aaa; margin-top: 1px; }
-        .commute-total {
-            font-size: 0.72em;
-            color: #4CAF50;
-            font-weight: bold;
-            margin-top: 3px;
-            padding-top: 3px;
-            border-top: 1px solid #2a2a2a;
-            width: 100%;
-            text-align: center;
-            font-variant-numeric: tabular-nums;
-        }
+        .commute-total { font-size: 0.72em; color: #4CAF50; font-weight: bold; margin-top: 3px; padding-top: 3px; border-top: 1px solid #2a2a2a; width: 100%; text-align: center; font-variant-numeric: tabular-nums; }
 
-        /* ===== Roundabout Card ===== */
-        .roundabout-status {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 8px 12px;
-            border-left: 3px solid #555;
-            transition: border-left-color 0.4s;
-        }
-        .roundabout-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .roundabout-badge {
-            font-size: 0.75em;
-            padding: 2px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            background: #444;
-            color: #fff;
-            font-variant-numeric: tabular-nums;
-        }
+        .roundabout-status { background: #1a1a1a; border-radius: 10px; padding: 8px 12px; border-left: 3px solid #555; transition: border-left-color 0.4s; }
+        .roundabout-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; font-weight: bold; margin-bottom: 4px; }
+        .roundabout-badge { font-size: 0.75em; padding: 2px 10px; border-radius: 4px; font-weight: bold; background: #444; color: #fff; font-variant-numeric: tabular-nums; }
         .roundabout-detail { font-size: 0.72em; color: #aaa; line-height: 1.3; }
 
         .col-side { display: flex; flex-direction: column; gap: 10px; height: 100%; }
@@ -263,6 +189,10 @@
             <div class="set-row"><span class="set-label">Parking (Lat,Lng)</span><input type="text" id="cfg-parking-latlng" class="set-input"></div>
             <div class="set-row"><span class="set-label">School 1 (Lat,Lng)</span><input type="text" id="cfg-school1-latlng" class="set-input"></div>
             <div class="set-row"><span class="set-label">School 2 (Lat,Lng)</span><input type="text" id="cfg-school2-latlng" class="set-input"></div>
+
+            <div class="set-section">Walk to Car</div>
+            <div class="set-hint">如果 Google 步行估算不準（例如繞路），在這裡填入你實測的時間（分鐘）。留空 = 使用 Google 估算。</div>
+            <div class="set-row"><span class="set-label">Walk Time Override (min)</span><input type="number" id="cfg-walk-override" class="set-input" min="0" max="60" placeholder="留空 = 自動"></div>
 
             <div class="set-section">Roundabout Probe</div>
             <div class="set-hint">如果繞圈時間永遠約 1 分鐘，可能 API 走了直線。填一個「對面」座標強制繞圈。</div>
@@ -383,6 +313,7 @@
             school1Name: "Fanling Rhenish",
             school2LatLng: "22.4428,114.04369",
             school2Name: "Yuen Long Gov't",
+            walkOverride: "",  // 手動覆蓋步行時間（分鐘）
             roundaboutA: "22.497277,114.130785",
             roundaboutB: "22.497104,114.130993",
             roundaboutMid: ""
@@ -400,7 +331,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v59');
+            const stored = localStorage.getItem('sh_config_v60');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -413,6 +344,7 @@
             set('cfg-parking-latlng', config.parkingLatLng);
             set('cfg-school1-latlng', config.school1LatLng);
             set('cfg-school2-latlng', config.school2LatLng);
+            set('cfg-walk-override', config.walkOverride || '');
             set('cfg-roundabout-a', config.roundaboutA);
             set('cfg-roundabout-b', config.roundaboutB);
             set('cfg-roundabout-mid', config.roundaboutMid || '');
@@ -420,6 +352,11 @@
             document.getElementById('bus-name').innerText = config.busStopKey;
             document.getElementById('label-school1').innerText = `🏫 ${config.school1Name}`;
             document.getElementById('label-school2').innerText = `🏫 ${config.school2Name}`;
+
+            // 診斷：印出當前座標
+            console.log('📍 Home:', config.homeLatLng);
+            console.log('🅿️ Parking:', config.parkingLatLng);
+            console.log('🚶 Walk Override:', config.walkOverride || '(auto)');
         }
 
         window.openSettings = () => document.getElementById('settings-overlay').style.display = 'flex';
@@ -436,10 +373,12 @@
             config.parkingLatLng = document.getElementById('cfg-parking-latlng').value.trim() || "22.493578,114.130367";
             config.school1LatLng = document.getElementById('cfg-school1-latlng').value.trim() || "22.49702,114.14132";
             config.school2LatLng = document.getElementById('cfg-school2-latlng').value.trim() || "22.4428,114.04369";
+            const walkOv = document.getElementById('cfg-walk-override').value.trim();
+            config.walkOverride = walkOv === '' ? '' : Math.max(0, parseInt(walkOv) || 0);
             config.roundaboutA = document.getElementById('cfg-roundabout-a').value.trim() || "22.497277,114.130785";
             config.roundaboutB = document.getElementById('cfg-roundabout-b').value.trim() || "22.497104,114.130993";
             config.roundaboutMid = document.getElementById('cfg-roundabout-mid').value.trim();
-            localStorage.setItem('sh_config_v59', JSON.stringify(config));
+            localStorage.setItem('sh_config_v60', JSON.stringify(config));
             location.reload();
         };
 
@@ -607,22 +546,13 @@
 
         async function fetchWeather() {
             let currentTemp = null, hkoIconCode = 50, stationName = "";
-
             try {
-                const res = await fetch(
-                    'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en',
-                    { cache: 'no-store' }
-                );
+                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en', { cache: 'no-store' });
                 const hkoData = await res.json();
                 let targetStation = (config.weatherStation || "Hong Kong Observatory").trim();
                 if (stationMap[targetStation]) targetStation = stationMap[targetStation];
-                let stationData = hkoData.temperature.data.find(
-                    s => s.place.trim().toLowerCase() === targetStation.toLowerCase()
-                );
-                if (!stationData) {
-                    stationData = hkoData.temperature.data.find(s => s.place === "Hong Kong Observatory")
-                        || hkoData.temperature.data[0];
-                }
+                let stationData = hkoData.temperature.data.find(s => s.place.trim().toLowerCase() === targetStation.toLowerCase());
+                if (!stationData) stationData = hkoData.temperature.data.find(s => s.place === "Hong Kong Observatory") || hkoData.temperature.data[0];
                 currentTemp = parseFloat(stationData.value);
                 stationName = stationData.place.trim();
                 hkoIconCode = parseInt(hkoData.icon?.[0]) || 50;
@@ -630,9 +560,7 @@
                 document.getElementById('w-hum').innerText = (hkoData.humidity?.data?.[0]?.value || "--") + "%";
                 document.getElementById('w-icon').innerText = getHKOIcon(hkoIconCode);
                 document.getElementById('w-station').innerText = `📍 ${stationName} | 🕒 ${formatTime(new Date())}`;
-            } catch (e) {
-                console.error("HKO Current Weather Error:", e);
-            }
+            } catch (e) { console.error("HKO Current Weather Error:", e); }
 
             let maxRainProb = 0;
             try {
@@ -640,10 +568,8 @@
                 const coord = STATION_COORDS[coordKey] || STATION_COORDS["Hong Kong Observatory"];
                 const omRes = await fetch(
                     `https://api.open-meteo.com/v1/forecast?latitude=${coord[0]}&longitude=${coord[1]}` +
-                    `&current=apparent_temperature,wind_speed_10m` +
-                    `&hourly=precipitation_probability` +
-                    `&daily=temperature_2m_max,temperature_2m_min` +
-                    `&timezone=auto&forecast_days=1&forecast_hours=4`,
+                    `&current=apparent_temperature,wind_speed_10m&hourly=precipitation_probability` +
+                    `&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1&forecast_hours=4`,
                     { cache: 'no-store' }
                 );
                 const omData = await omRes.json();
@@ -654,25 +580,18 @@
                 const dMax = omData.daily?.temperature_2m_max?.[0], dMin = omData.daily?.temperature_2m_min?.[0];
                 if (dMax != null) document.getElementById('w-max').innerText = "↑" + Math.round(dMax) + "°";
                 if (dMin != null) document.getElementById('w-min').innerText = "↓" + Math.round(dMin) + "°";
-            } catch (e) {
-                console.error("Open-Meteo Error:", e);
-            }
+            } catch (e) { console.error("Open-Meteo Error:", e); }
 
             const actionBox = document.getElementById('action-tip');
             if (actionBox) {
                 if (maxRainProb >= 50) {
                     actionBox.style.display = "flex";
                     actionBox.innerHTML = `<div class="marquee">🌧️ Rain expected soon! Please bring in the laundry.${"&nbsp;".repeat(20)}</div>`;
-                } else {
-                    actionBox.style.display = "none";
-                }
+                } else { actionBox.style.display = "none"; }
             }
 
             try {
-                const fndRes = await fetch(
-                    'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en',
-                    { cache: 'no-store' }
-                );
+                const fndRes = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en', { cache: 'no-store' });
                 const fndData = await fndRes.json();
                 const forecast = fndData?.weatherForecast;
                 if (forecast && forecast.length > 0) {
@@ -692,14 +611,9 @@
                         fContainer.appendChild(div);
                     }
                 }
-            } catch (e) {
-                console.error("HKO Forecast Error:", e);
-            }
+            } catch (e) { console.error("HKO Forecast Error:", e); }
         }
 
-        // ============================================
-        // Weather Warnings (English)
-        // ============================================
         const warnMap = {
             'WFIREY': { icon: '🔥', text: 'Yellow Fire', level: 2 }, 'WFIRER': { icon: '🔥', text: 'Red Fire', level: 3 },
             'WRAINA': { icon: '🌧️', text: 'Amber Rain', level: 2 }, 'WRAINR': { icon: '🌧️', text: 'Red Rain', level: 3 },
@@ -723,7 +637,6 @@
                 container.innerHTML = "";
                 const okBadge = '<span class="warning-text-badge" style="background:#0d2818;border-color:#1e5631;color:#a8e6b8;box-shadow:0 0 8px rgba(76,175,80,0.3)">✅ No Warnings</span>';
                 if (!data || Object.keys(data).length === 0) { container.innerHTML = okBadge; return; }
-
                 const now = new Date();
                 const warnings = [];
                 Object.keys(data).forEach(key => {
@@ -763,6 +676,15 @@
         // ============================================
         let lastCommuteUpdate = 0;
 
+        function haversineMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const toRad = d => d * Math.PI / 180;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
         async function getRouteTime(origin, destination, travelMode = 'DRIVE', waypoints = []) {
             const [originLat, originLng] = origin.split(',').map(Number);
             const [destLat, destLng] = destination.split(',').map(Number);
@@ -785,19 +707,11 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload),
-                    redirect: 'follow',
-                    cache: 'no-store'
+                    redirect: 'follow', cache: 'no-store'
                 });
-
                 const data = await res.json();
-
-                if (data.error) {
-                    return { error: 'GAS_ERROR', msg: data.error };
-                }
-
-                if (!data.routes || data.routes.length === 0) {
-                    return { error: 'NO_ROUTE', msg: 'No route found' };
-                }
+                if (data.error) return { error: 'GAS_ERROR', msg: data.error };
+                if (!data.routes || data.routes.length === 0) return { error: 'NO_ROUTE', msg: 'No route found' };
 
                 const route = data.routes[0];
                 const durationSeconds = parseInt(String(route.duration).replace('s', '')) || 0;
@@ -820,6 +734,22 @@
             const distEl = document.getElementById('walk-distance');
             if (!timeEl || !distEl) return;
 
+            // 如果有手動覆蓋，優先使用
+            if (config.walkOverride !== '' && config.walkOverride !== null && config.walkOverride !== undefined) {
+                const ov = parseInt(config.walkOverride);
+                if (!isNaN(ov) && ov > 0) {
+                    timeEl.textContent = ov + ' min';
+                    // 仍然顯示 Google 的距離（如果有）
+                    if (walkResult && !walkResult.error) {
+                        distEl.textContent = walkResult.distance + ' (manual)';
+                    } else {
+                        distEl.textContent = '(manual)';
+                    }
+                    return;
+                }
+            }
+
+            // 否則用 Google 估算
             if (!walkResult || walkResult.error) {
                 timeEl.textContent = 'ERR';
                 distEl.textContent = '';
@@ -845,24 +775,26 @@
                 return;
             }
 
-            const walkMins = (walkResult && !walkResult.error) ? walkResult.minutes : 0;
+            // 步行時間：優先用手動覆蓋
+            let walkMins = 0;
+            if (config.walkOverride !== '' && config.walkOverride !== null && config.walkOverride !== undefined) {
+                const ov = parseInt(config.walkOverride);
+                if (!isNaN(ov) && ov > 0) walkMins = ov;
+            } else if (walkResult && !walkResult.error) {
+                walkMins = walkResult.minutes;
+            }
+
             const totalMins = driveResult.minutes + walkMins;
 
             timeEl.textContent = driveResult.minutes;
             subEl.textContent = driveResult.distance + ' drive';
             timeEl.style.color = "#fff";
 
-            if (totalEl) {
-                totalEl.textContent = `Total: ${totalMins} min`;
-            }
+            if (totalEl) totalEl.textContent = `Total: ${totalMins} min`;
 
-            if (driveResult.minutes > thresholds[1]) {
-                box.style.borderLeftColor = "#F44336";
-            } else if (driveResult.minutes > thresholds[0]) {
-                box.style.borderLeftColor = "#FF9800";
-            } else {
-                box.style.borderLeftColor = "#4CAF50";
-            }
+            if (driveResult.minutes > thresholds[1]) box.style.borderLeftColor = "#F44336";
+            else if (driveResult.minutes > thresholds[0]) box.style.borderLeftColor = "#FF9800";
+            else box.style.borderLeftColor = "#4CAF50";
         }
 
         function updateRoundaboutFromProbe(probeResult) {
@@ -886,20 +818,16 @@
             let status, color, text;
 
             if (distM < 50 || secs < 20) {
-                status = 'Short';
-                color = '#888';
+                status = 'Short'; color = '#888';
                 text = `繞圈 ${secs}s · ${distM}m — 可能未繞迴旋處`;
             } else if (mins <= 2) {
-                status = 'Clear';
-                color = '#4CAF50';
+                status = 'Clear'; color = '#4CAF50';
                 text = `繞圈 ${secs}s · ${distM}m · 暢通`;
             } else if (mins <= 4) {
-                status = 'Slow';
-                color = '#FF9800';
+                status = 'Slow'; color = '#FF9800';
                 text = `繞圈 ${secs}s · ${distM}m · 車流稍多`;
             } else {
-                status = 'Jam';
-                color = '#F44336';
+                status = 'Jam'; color = '#F44336';
                 text = `繞圈 ${secs}s · ${distM}m · 明顯擠塞`;
             }
 
@@ -918,6 +846,19 @@
                 getRouteTime(config.parkingLatLng, config.school2LatLng, 'DRIVE'),
                 getRouteTime(config.roundaboutA, config.roundaboutB, 'DRIVE', roundaboutWaypoints)
             ]);
+
+            // 診斷：計算直線距離，與 Google 結果對比
+            const [hLat, hLng] = config.homeLatLng.split(',').map(Number);
+            const [pLat, pLng] = config.parkingLatLng.split(',').map(Number);
+            const straightM = haversineMeters(hLat, hLng, pLat, pLng);
+            const googleM = walk && !walk.error ? walk.distanceMeters : 0;
+            console.log(`🚶 Walk: 直線 ${straightM.toFixed(0)}m · Google ${googleM}m · 比率 ${googleM > 0 ? (googleM/straightM).toFixed(2) : 'N/A'}x`);
+            if (walk && !walk.error) {
+                console.log(`   Google: ${walk.minutes} min · ${walk.distance}`);
+            }
+            if (config.walkOverride !== '') {
+                console.log(`   Override: ${config.walkOverride} min (手動)`);
+            }
 
             updateWalkDisplay(walk);
             setRouteDisplay('school1', driveS1, walk, [8, 12]);
@@ -977,7 +918,6 @@
                 const res = await fetch(apiUrl, { cache: 'no-store' });
                 const json = await res.json();
                 const dirCode = targetDirection === 'outbound' ? 'O' : 'I';
-
                 const buses = (json.data || [])
                     .filter(b => b.eta && b.dir === dirCode && parseInt(b.seq) === parseInt(targetStopSeq))
                     .filter(b => new Date(b.eta) - Date.now() > -60000)
@@ -1015,7 +955,7 @@
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
             updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
-            console.log("Dashboard V59 ready");
+            console.log("Dashboard V60 ready");
         };
     </script>
 </body>
