@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V55</title>
+    <title>Smart Home Dashboard V58</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -69,7 +69,7 @@
             border-bottom: 1px solid #333;
             padding-bottom: 4px;
         }
-        .freshness-dot { font-size: 0.75em; color: #4CAF50; transition: color 0.3s; }
+        .commute-update-time { font-size: 0.7em; color: #888; font-weight: normal; }
         .commute-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -104,10 +104,12 @@
             font-variant-numeric: tabular-nums;
         }
         .commute-sub { font-size: 0.75em; color: #aaa; margin-top: 2px; }
+
+        /* ===== Roundabout Card ===== */
         .roundabout-status {
             background: #1a1a1a;
             border-radius: 10px;
-            padding: 8px 10px;
+            padding: 8px 12px;
             border-left: 3px solid #555;
             transition: border-left-color 0.4s;
         }
@@ -115,17 +117,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.85em;
+            font-size: 0.9em;
             font-weight: bold;
             margin-bottom: 4px;
         }
         .roundabout-badge {
             font-size: 0.75em;
-            padding: 2px 8px;
+            padding: 2px 10px;
             border-radius: 4px;
             font-weight: bold;
             background: #444;
             color: #fff;
+            font-variant-numeric: tabular-nums;
         }
         .roundabout-detail { font-size: 0.75em; color: #aaa; line-height: 1.3; }
 
@@ -170,6 +173,7 @@
         .btn-save { background: var(--accent); color: white; }
         .btn-cancel { background: #444; color: white; }
         .set-section { margin-top: 18px; padding-top: 12px; border-top: 1px dashed #444; color: #888; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
+        .set-hint { font-size: 0.75em; color: #777; font-style: italic; margin-top: -8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -229,9 +233,15 @@
             <div class="set-row"><span class="set-label">Stop Keyword</span><input type="text" id="cfg-bus-stop" class="set-input"></div>
 
             <div class="set-section">Driving (GAS Proxy)</div>
-            <div class="set-row"><span class="set-label">Home (Lat,Lng)</span><input type="text" id="cfg-home-latlng" class="set-input" placeholder="22.501,114.128"></div>
-            <div class="set-row"><span class="set-label">School 1 (Lat,Lng)</span><input type="text" id="cfg-school1-latlng" class="set-input" placeholder="22.497,114.143"></div>
-            <div class="set-row"><span class="set-label">School 2 (Lat,Lng)</span><input type="text" id="cfg-school2-latlng" class="set-input" placeholder="22.438,114.038"></div>
+            <div class="set-row"><span class="set-label">Home (Lat,Lng)</span><input type="text" id="cfg-home-latlng" class="set-input"></div>
+            <div class="set-row"><span class="set-label">School 1 (Lat,Lng)</span><input type="text" id="cfg-school1-latlng" class="set-input"></div>
+            <div class="set-row"><span class="set-label">School 2 (Lat,Lng)</span><input type="text" id="cfg-school2-latlng" class="set-input"></div>
+
+            <div class="set-section">Roundabout Probe</div>
+            <div class="set-hint">如果繞圈時間永遠約 1 分鐘，可能 API 走了直線。填一個「對面」座標強制繞圈。</div>
+            <div class="set-row"><span class="set-label">Entry (Lat,Lng)</span><input type="text" id="cfg-roundabout-a" class="set-input"></div>
+            <div class="set-row"><span class="set-label">Exit (Lat,Lng)</span><input type="text" id="cfg-roundabout-b" class="set-input"></div>
+            <div class="set-row"><span class="set-label">Mid (optional)</span><input type="text" id="cfg-roundabout-mid" class="set-input" placeholder="留空 = 不強制繞圈"></div>
 
             <div class="set-btn-row">
                 <button class="set-btn btn-cancel" onclick="closeSettings()">Cancel</button>
@@ -276,7 +286,7 @@
                     <div class="card commute-card" id="commute-card">
                         <div class="commute-header">
                             <span>🚗 Family Commute</span>
-                            <span class="freshness-dot" id="commute-fresh" title="Loading...">●</span>
+                            <span class="commute-update-time" id="commute-update-time">--</span>
                         </div>
                         <div class="commute-grid">
                             <div class="commute-item" id="route-school1">
@@ -295,7 +305,7 @@
                                 <span>🔄 雞嶺迴旋處</span>
                                 <span class="roundabout-badge" id="roundabout-badge">--</span>
                             </div>
-                            <div class="roundabout-detail" id="roundabout-detail">Loading...</div>
+                            <div class="roundabout-detail" id="roundabout-detail">Probing...</div>
                         </div>
                     </div>
                 </div>
@@ -324,9 +334,6 @@
     </div>
 
     <script>
-        // ============================================
-        // GAS Proxy URL
-        // ============================================
         const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbwH6Q7IBhPCpZ6m3MEutySdljh7P1Mz2NacMIhBH9fvfF8yYq0K8DlzWvfLZvi696CfLw/exec';
 
         let config = {
@@ -334,10 +341,14 @@
             busRoute: "273B", busStopKey: "御景峰",
             weatherStation: "Hong Kong Observatory",
             homeLatLng: "22.501,114.128",
-            school1LatLng: "22.497,114.143",
+            school1LatLng: "22.49702,114.14132",
             school1Name: "Fanling Rhenish",
-            school2LatLng: "22.438,114.038",
-            school2Name: "Yuen Long Gov't"
+            school2LatLng: "22.4428,114.04369",
+            school2Name: "Yuen Long Gov't",
+            // 你提供的精確座標
+            roundaboutA: "22.497277,114.130785",   // 入口
+            roundaboutB: "22.497104,114.130993",   // 出口
+            roundaboutMid: ""                      // 可選中間點（留空 = 不強制繞圈）
         };
 
         const STATION_COORDS = {
@@ -352,7 +363,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v55');
+            const stored = localStorage.getItem('sh_config_v58');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -364,6 +375,9 @@
             set('cfg-home-latlng', config.homeLatLng);
             set('cfg-school1-latlng', config.school1LatLng);
             set('cfg-school2-latlng', config.school2LatLng);
+            set('cfg-roundabout-a', config.roundaboutA);
+            set('cfg-roundabout-b', config.roundaboutB);
+            set('cfg-roundabout-mid', config.roundaboutMid || '');
             document.getElementById('bus-badge').innerText = config.busRoute;
             document.getElementById('bus-name').innerText = config.busStopKey;
             document.getElementById('label-school1').innerText = `🏫 ${config.school1Name}`;
@@ -381,9 +395,12 @@
             config.busRoute   = document.getElementById('cfg-bus-route').value.trim() || "273B";
             config.busStopKey = document.getElementById('cfg-bus-stop').value.trim();
             config.homeLatLng = document.getElementById('cfg-home-latlng').value.trim() || "22.501,114.128";
-            config.school1LatLng = document.getElementById('cfg-school1-latlng').value.trim() || "22.497,114.143";
-            config.school2LatLng = document.getElementById('cfg-school2-latlng').value.trim() || "22.438,114.038";
-            localStorage.setItem('sh_config_v55', JSON.stringify(config));
+            config.school1LatLng = document.getElementById('cfg-school1-latlng').value.trim() || "22.49702,114.14132";
+            config.school2LatLng = document.getElementById('cfg-school2-latlng').value.trim() || "22.4428,114.04369";
+            config.roundaboutA = document.getElementById('cfg-roundabout-a').value.trim() || "22.497277,114.130785";
+            config.roundaboutB = document.getElementById('cfg-roundabout-b').value.trim() || "22.497104,114.130993";
+            config.roundaboutMid = document.getElementById('cfg-roundabout-mid').value.trim();
+            localStorage.setItem('sh_config_v58', JSON.stringify(config));
             location.reload();
         };
 
@@ -703,35 +720,41 @@
         }
 
         // ============================================
-        // Commute (via GAS Proxy → Google Routes API)
+        // Commute
         // ============================================
         let lastCommuteUpdate = 0;
 
-        async function getDrivingTime(origin, destination) {
+        async function getDrivingTime(origin, destination, waypoints) {
             const [originLat, originLng] = origin.split(',').map(Number);
             const [destLat, destLng] = destination.split(',').map(Number);
+
+            const payload = {
+                origin: { lat: originLat, lng: originLng },
+                destination: { lat: destLat, lng: destLng }
+            };
+
+            if (Array.isArray(waypoints) && waypoints.length > 0) {
+                payload.waypoints = waypoints.map(w => {
+                    const [lat, lng] = w.split(',').map(Number);
+                    return { lat, lng };
+                }).filter(w => !isNaN(w.lat) && !isNaN(w.lng));
+            }
 
             try {
                 const res = await fetch(GAS_PROXY_URL, {
                     method: 'POST',
-                    // text/plain 避免觸發 CORS preflight (OPTIONS)
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        origin: { lat: originLat, lng: originLng },
-                        destination: { lat: destLat, lng: destLng }
-                    }),
+                    body: JSON.stringify(payload),
                     redirect: 'follow',
                     cache: 'no-store'
                 });
 
                 const data = await res.json();
 
-                // GAS 錯誤回應
                 if (data.error) {
                     return { error: 'GAS_ERROR', msg: data.error };
                 }
 
-                // Google Routes API 成功回應
                 if (!data.routes || data.routes.length === 0) {
                     return { error: 'NO_ROUTE', msg: 'No route found' };
                 }
@@ -742,7 +765,9 @@
 
                 return {
                     minutes: Math.round(durationSeconds / 60),
-                    distance: (distanceMeters / 1000).toFixed(1) + ' km',
+                    seconds: durationSeconds,
+                    distance: (distanceMeters / 1000).toFixed(2) + ' km',
+                    distanceMeters: distanceMeters,
                     rawDuration: durationSeconds
                 };
             } catch (e) {
@@ -778,62 +803,71 @@
             }
         }
 
-        function updateRoundaboutStatus(school1Result) {
+        // ============================================
+        // Roundabout 狀態：基於繞圈時間
+        // 閾值：≤2 min = Clear / 3-4 min = Slow / ≥5 min = Jam
+        // ============================================
+        function updateRoundaboutFromProbe(probeResult) {
             const badge = document.getElementById('roundabout-badge');
             const detail = document.getElementById('roundabout-detail');
             const box = document.getElementById('roundabout-box');
             if (!badge || !detail || !box) return;
 
-            let statusText = "Normal";
-            let statusColor = "#4CAF50";
-            let detailText = "Traffic flowing normally";
-
-            if (school1Result && !school1Result.error) {
-                if (school1Result.minutes > 12) {
-                    statusText = "Congested";
-                    statusColor = "#F44336";
-                    detailText = "Likely congested. Allow extra time.";
-                } else if (school1Result.minutes > 8) {
-                    statusText = "Slow";
-                    statusColor = "#FF9800";
-                    detailText = "Heavier traffic, but passable.";
-                } else {
-                    detailText = "Clear via main roads";
-                }
-            } else {
-                statusText = "N/A";
-                statusColor = "#666";
-                detailText = school1Result?.error === 'NETWORK' ? "Network error" : "Data unavailable";
+            if (!probeResult || probeResult.error) {
+                badge.textContent = 'N/A';
+                badge.style.background = '#666';
+                detail.textContent = 'Cannot probe roundabout';
+                box.style.borderLeftColor = '#555';
+                return;
             }
 
-            badge.textContent = statusText;
-            badge.style.background = statusColor;
-            detail.textContent = detailText;
-            box.style.borderLeftColor = statusColor;
+            const mins = probeResult.minutes;
+            const secs = probeResult.seconds;
+            const distM = probeResult.distanceMeters;
+
+            let status, color, text;
+
+            // 如果距離太短（< 50m）或秒數極短（< 20s），可能唔係真正繞圈
+            if (distM < 50 || secs < 20) {
+                status = 'Short';
+                color = '#888';
+                text = `繞圈 ${secs}s · ${distM}m — 可能未繞迴旋處`;
+            } else if (mins <= 2) {
+                status = 'Clear';
+                color = '#4CAF50';
+                text = `繞圈 ${secs}s · ${distM}m · 暢通`;
+            } else if (mins <= 4) {
+                status = 'Slow';
+                color = '#FF9800';
+                text = `繞圈 ${secs}s · ${distM}m · 車流稍多`;
+            } else {
+                status = 'Jam';
+                color = '#F44336';
+                text = `繞圈 ${secs}s · ${distM}m · 明顯擠塞`;
+            }
+
+            badge.textContent = status;
+            badge.style.background = color;
+            detail.textContent = text;
+            box.style.borderLeftColor = color;
         }
 
         async function updateCommuteData() {
-            const [school1, school2] = await Promise.all([
+            const roundaboutWaypoints = config.roundaboutMid ? [config.roundaboutMid] : [];
+
+            const [school1, school2, roundaboutProbe] = await Promise.all([
                 getDrivingTime(config.homeLatLng, config.school1LatLng),
-                getDrivingTime(config.homeLatLng, config.school2LatLng)
+                getDrivingTime(config.homeLatLng, config.school2LatLng),
+                getDrivingTime(config.roundaboutA, config.roundaboutB, roundaboutWaypoints)
             ]);
 
             setRouteDisplay('school1', school1, [8, 12]);
             setRouteDisplay('school2', school2, [18, 25]);
-            updateRoundaboutStatus(school1);
+            updateRoundaboutFromProbe(roundaboutProbe);
 
             lastCommuteUpdate = Date.now();
-            updateCommuteFreshness();
+            document.getElementById('commute-update-time').textContent = 'Updated ' + formatTime(new Date());
         }
-
-        function updateCommuteFreshness() {
-            const dot = document.getElementById('commute-fresh');
-            if (!dot || !lastCommuteUpdate) return;
-            const ageMin = (Date.now() - lastCommuteUpdate) / 60000;
-            dot.style.color = ageMin < 3 ? '#4CAF50' : ageMin < 10 ? '#ff9800' : '#f44336';
-            dot.title = ageMin < 1 ? 'Just updated' : `Updated ${Math.round(ageMin)} min ago`;
-        }
-        setInterval(updateCommuteFreshness, 15000);
 
         // ============================================
         // Bus ETA
@@ -922,7 +956,7 @@
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
             updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
-            console.log("Dashboard V55 ready");
+            console.log("Dashboard V58 ready");
         };
     </script>
 </body>
