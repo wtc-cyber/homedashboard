@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V58</title>
+    <title>Smart Home Dashboard V59</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -56,7 +56,7 @@
             padding: 12px 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             overflow: hidden;
             transition: border-left-color 0.5s;
         }
@@ -70,6 +70,21 @@
             padding-bottom: 4px;
         }
         .commute-update-time { font-size: 0.7em; color: #888; font-weight: normal; }
+
+        .walk-to-car {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            border-left: 3px solid #FFC107;
+        }
+        .walk-label { color: #aaa; }
+        .walk-time { font-weight: bold; color: #FFC107; font-variant-numeric: tabular-nums; font-size: 1.1em; }
+        .walk-distance { color: #888; font-size: 0.85em; }
+
         .commute-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -78,7 +93,7 @@
         .commute-item {
             background: #1a1a1a;
             border-radius: 10px;
-            padding: 10px;
+            padding: 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -90,20 +105,31 @@
             font-size: 0.7em;
             color: #999;
             text-transform: uppercase;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
         }
         .commute-time {
-            font-size: 2em;
+            font-size: 1.8em;
             font-weight: bold;
             color: #fff;
             line-height: 1.1;
             font-variant-numeric: tabular-nums;
         }
-        .commute-sub { font-size: 0.75em; color: #aaa; margin-top: 2px; }
+        .commute-sub { font-size: 0.7em; color: #aaa; margin-top: 1px; }
+        .commute-total {
+            font-size: 0.72em;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 3px;
+            padding-top: 3px;
+            border-top: 1px solid #2a2a2a;
+            width: 100%;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
 
         /* ===== Roundabout Card ===== */
         .roundabout-status {
@@ -130,7 +156,7 @@
             color: #fff;
             font-variant-numeric: tabular-nums;
         }
-        .roundabout-detail { font-size: 0.75em; color: #aaa; line-height: 1.3; }
+        .roundabout-detail { font-size: 0.72em; color: #aaa; line-height: 1.3; }
 
         .col-side { display: flex; flex-direction: column; gap: 10px; height: 100%; }
         .schedule-box { flex: 0 0 35%; border-top: 4px solid #FFD700; overflow: hidden; display: flex; flex-direction: column; }
@@ -234,6 +260,7 @@
 
             <div class="set-section">Driving (GAS Proxy)</div>
             <div class="set-row"><span class="set-label">Home (Lat,Lng)</span><input type="text" id="cfg-home-latlng" class="set-input"></div>
+            <div class="set-row"><span class="set-label">Parking (Lat,Lng)</span><input type="text" id="cfg-parking-latlng" class="set-input"></div>
             <div class="set-row"><span class="set-label">School 1 (Lat,Lng)</span><input type="text" id="cfg-school1-latlng" class="set-input"></div>
             <div class="set-row"><span class="set-label">School 2 (Lat,Lng)</span><input type="text" id="cfg-school2-latlng" class="set-input"></div>
 
@@ -288,18 +315,28 @@
                             <span>🚗 Family Commute</span>
                             <span class="commute-update-time" id="commute-update-time">--</span>
                         </div>
+
+                        <div class="walk-to-car">
+                            <span class="walk-label">🚶 Walk to car</span>
+                            <span class="walk-time" id="walk-time">-- min</span>
+                            <span class="walk-distance" id="walk-distance">--</span>
+                        </div>
+
                         <div class="commute-grid">
                             <div class="commute-item" id="route-school1">
                                 <span class="commute-label" id="label-school1">🏫 Fanling Rhenish</span>
                                 <span class="commute-time" id="time-school1">--</span>
-                                <span class="commute-sub" id="sub-school1">min</span>
+                                <span class="commute-sub" id="sub-school1">drive min</span>
+                                <span class="commute-total" id="total-school1">Total: --</span>
                             </div>
                             <div class="commute-item" id="route-school2">
                                 <span class="commute-label" id="label-school2">🏫 Yuen Long Gov't</span>
                                 <span class="commute-time" id="time-school2">--</span>
-                                <span class="commute-sub" id="sub-school2">min</span>
+                                <span class="commute-sub" id="sub-school2">drive min</span>
+                                <span class="commute-total" id="total-school2">Total: --</span>
                             </div>
                         </div>
+
                         <div class="roundabout-status" id="roundabout-box">
                             <div class="roundabout-head">
                                 <span>🔄 雞嶺迴旋處</span>
@@ -341,14 +378,14 @@
             busRoute: "273B", busStopKey: "御景峰",
             weatherStation: "Hong Kong Observatory",
             homeLatLng: "22.501,114.128",
+            parkingLatLng: "22.493578,114.130367",
             school1LatLng: "22.49702,114.14132",
             school1Name: "Fanling Rhenish",
             school2LatLng: "22.4428,114.04369",
             school2Name: "Yuen Long Gov't",
-            // 你提供的精確座標
-            roundaboutA: "22.497277,114.130785",   // 入口
-            roundaboutB: "22.497104,114.130993",   // 出口
-            roundaboutMid: ""                      // 可選中間點（留空 = 不強制繞圈）
+            roundaboutA: "22.497277,114.130785",
+            roundaboutB: "22.497104,114.130993",
+            roundaboutMid: ""
         };
 
         const STATION_COORDS = {
@@ -363,7 +400,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v58');
+            const stored = localStorage.getItem('sh_config_v59');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -373,6 +410,7 @@
             set('cfg-bus-route', config.busRoute);
             set('cfg-bus-stop', config.busStopKey);
             set('cfg-home-latlng', config.homeLatLng);
+            set('cfg-parking-latlng', config.parkingLatLng);
             set('cfg-school1-latlng', config.school1LatLng);
             set('cfg-school2-latlng', config.school2LatLng);
             set('cfg-roundabout-a', config.roundaboutA);
@@ -395,12 +433,13 @@
             config.busRoute   = document.getElementById('cfg-bus-route').value.trim() || "273B";
             config.busStopKey = document.getElementById('cfg-bus-stop').value.trim();
             config.homeLatLng = document.getElementById('cfg-home-latlng').value.trim() || "22.501,114.128";
+            config.parkingLatLng = document.getElementById('cfg-parking-latlng').value.trim() || "22.493578,114.130367";
             config.school1LatLng = document.getElementById('cfg-school1-latlng').value.trim() || "22.49702,114.14132";
             config.school2LatLng = document.getElementById('cfg-school2-latlng').value.trim() || "22.4428,114.04369";
             config.roundaboutA = document.getElementById('cfg-roundabout-a').value.trim() || "22.497277,114.130785";
             config.roundaboutB = document.getElementById('cfg-roundabout-b').value.trim() || "22.497104,114.130993";
             config.roundaboutMid = document.getElementById('cfg-roundabout-mid').value.trim();
-            localStorage.setItem('sh_config_v58', JSON.stringify(config));
+            localStorage.setItem('sh_config_v59', JSON.stringify(config));
             location.reload();
         };
 
@@ -724,13 +763,14 @@
         // ============================================
         let lastCommuteUpdate = 0;
 
-        async function getDrivingTime(origin, destination, waypoints) {
+        async function getRouteTime(origin, destination, travelMode = 'DRIVE', waypoints = []) {
             const [originLat, originLng] = origin.split(',').map(Number);
             const [destLat, destLng] = destination.split(',').map(Number);
 
             const payload = {
                 origin: { lat: originLat, lng: originLng },
-                destination: { lat: destLat, lng: destLng }
+                destination: { lat: destLat, lng: destLng },
+                travelMode
             };
 
             if (Array.isArray(waypoints) && waypoints.length > 0) {
@@ -767,8 +807,7 @@
                     minutes: Math.round(durationSeconds / 60),
                     seconds: durationSeconds,
                     distance: (distanceMeters / 1000).toFixed(2) + ' km',
-                    distanceMeters: distanceMeters,
-                    rawDuration: durationSeconds
+                    distanceMeters: distanceMeters
                 };
             } catch (e) {
                 console.error("GAS Proxy Error:", e);
@@ -776,37 +815,56 @@
             }
         }
 
-        function setRouteDisplay(prefix, result, thresholds) {
+        function updateWalkDisplay(walkResult) {
+            const timeEl = document.getElementById('walk-time');
+            const distEl = document.getElementById('walk-distance');
+            if (!timeEl || !distEl) return;
+
+            if (!walkResult || walkResult.error) {
+                timeEl.textContent = 'ERR';
+                distEl.textContent = '';
+                return;
+            }
+            timeEl.textContent = walkResult.minutes + ' min';
+            distEl.textContent = walkResult.distance;
+        }
+
+        function setRouteDisplay(prefix, driveResult, walkResult, thresholds) {
             const timeEl = document.getElementById(`time-${prefix}`);
             const subEl = document.getElementById(`sub-${prefix}`);
+            const totalEl = document.getElementById(`total-${prefix}`);
             const box = document.getElementById(`route-${prefix}`);
             if (!timeEl || !subEl || !box) return;
 
-            if (!result || result.error) {
+            if (!driveResult || driveResult.error) {
                 timeEl.textContent = "ERR";
-                subEl.textContent = result?.error === 'GAS_ERROR' ? 'GAS Error' : (result?.error || 'No data');
+                subEl.textContent = driveResult?.error === 'GAS_ERROR' ? 'GAS Error' : (driveResult?.error || 'No data');
+                if (totalEl) totalEl.textContent = 'Total: --';
                 timeEl.style.color = "#f44336";
                 box.style.borderLeftColor = "#555";
                 return;
             }
 
-            timeEl.textContent = result.minutes;
-            subEl.textContent = result.distance;
+            const walkMins = (walkResult && !walkResult.error) ? walkResult.minutes : 0;
+            const totalMins = driveResult.minutes + walkMins;
+
+            timeEl.textContent = driveResult.minutes;
+            subEl.textContent = driveResult.distance + ' drive';
             timeEl.style.color = "#fff";
 
-            if (result.minutes > thresholds[1]) {
+            if (totalEl) {
+                totalEl.textContent = `Total: ${totalMins} min`;
+            }
+
+            if (driveResult.minutes > thresholds[1]) {
                 box.style.borderLeftColor = "#F44336";
-            } else if (result.minutes > thresholds[0]) {
+            } else if (driveResult.minutes > thresholds[0]) {
                 box.style.borderLeftColor = "#FF9800";
             } else {
                 box.style.borderLeftColor = "#4CAF50";
             }
         }
 
-        // ============================================
-        // Roundabout 狀態：基於繞圈時間
-        // 閾值：≤2 min = Clear / 3-4 min = Slow / ≥5 min = Jam
-        // ============================================
         function updateRoundaboutFromProbe(probeResult) {
             const badge = document.getElementById('roundabout-badge');
             const detail = document.getElementById('roundabout-detail');
@@ -827,7 +885,6 @@
 
             let status, color, text;
 
-            // 如果距離太短（< 50m）或秒數極短（< 20s），可能唔係真正繞圈
             if (distM < 50 || secs < 20) {
                 status = 'Short';
                 color = '#888';
@@ -855,14 +912,16 @@
         async function updateCommuteData() {
             const roundaboutWaypoints = config.roundaboutMid ? [config.roundaboutMid] : [];
 
-            const [school1, school2, roundaboutProbe] = await Promise.all([
-                getDrivingTime(config.homeLatLng, config.school1LatLng),
-                getDrivingTime(config.homeLatLng, config.school2LatLng),
-                getDrivingTime(config.roundaboutA, config.roundaboutB, roundaboutWaypoints)
+            const [walk, driveS1, driveS2, roundaboutProbe] = await Promise.all([
+                getRouteTime(config.homeLatLng, config.parkingLatLng, 'WALK'),
+                getRouteTime(config.parkingLatLng, config.school1LatLng, 'DRIVE'),
+                getRouteTime(config.parkingLatLng, config.school2LatLng, 'DRIVE'),
+                getRouteTime(config.roundaboutA, config.roundaboutB, 'DRIVE', roundaboutWaypoints)
             ]);
 
-            setRouteDisplay('school1', school1, [8, 12]);
-            setRouteDisplay('school2', school2, [18, 25]);
+            updateWalkDisplay(walk);
+            setRouteDisplay('school1', driveS1, walk, [8, 12]);
+            setRouteDisplay('school2', driveS2, walk, [18, 25]);
             updateRoundaboutFromProbe(roundaboutProbe);
 
             lastCommuteUpdate = Date.now();
@@ -956,7 +1015,7 @@
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
             updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
-            console.log("Dashboard V58 ready");
+            console.log("Dashboard V59 ready");
         };
     </script>
 </body>
