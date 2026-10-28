@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V50</title>
+    <title>Smart Home Dashboard V51</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -340,7 +340,7 @@
             try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } catch(e) {}
         });
         window.toggleFullScreen = function() {
-            if (!document.documentElement.requestFullscreen) return;   // iOS Safari 不支援
+            if (!document.documentElement.requestFullscreen) return;
             try {
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen();
                 else document.exitFullscreen();
@@ -352,13 +352,12 @@
 
         async function loadGoogleData() {
             try {
-                const res = await fetch(GOOGLE_GAS_URL);
+                const res = await fetch(GOOGLE_GAS_URL, { cache: 'no-store' });
                 const data = await res.json();
                 const events = data.calendar || [];
                 const nowTs = new Date();
                 let scheduleHTML = "";
                 events
-                    // 過濾已完結的事件（如有 end 就用 end，否則用 start）；全日事件以 start 日計
                     .filter(e => { const t = new Date(e.end || e.start); return isNaN(t) || t > nowTs || new Date(e.start).toDateString() === nowTs.toDateString() && e.allDay; })
                     .sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 5).forEach(event => {
                         const start = new Date(event.start);
@@ -394,7 +393,7 @@
             if (!taskId) { checkbox.checked = false; return; }
             checkbox.disabled = true;
             try {
-                const res = await fetch(GOOGLE_GAS_URL + "?action=completeTask&taskId=" + encodeURIComponent(taskId));
+                const res = await fetch(GOOGLE_GAS_URL + "?action=completeTask&taskId=" + encodeURIComponent(taskId), { cache: 'no-store' });
                 const result = await res.json();
                 if (!result.success) { checkbox.checked = false; alert("Google Task update failed\n\n" + (result.error || "Unknown error")); return; }
                 await loadGoogleData();
@@ -423,28 +422,47 @@
         async function fetchWeather() {
             let currentTemp = null, hkoIconCode = 50, stationName = "";
 
-            // ① HKO 現時天氣（失敗就整個放棄，因為冇溫度）
+            // ① HKO 現時天氣（失敗都繼續，唔 return）
             try {
-                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en');
+                const res = await fetch(
+                    'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en',
+                    { cache: 'no-store' }
+                );
                 const hkoData = await res.json();
                 let targetStation = (config.weatherStation || "Hong Kong Observatory").trim();
                 if (stationMap[targetStation]) targetStation = stationMap[targetStation];
-                let stationData = hkoData.temperature.data.find(s => s.place.toLowerCase() === targetStation.toLowerCase());
-                if (!stationData) stationData = hkoData.temperature.data.find(s => s.place === "Hong Kong Observatory") || hkoData.temperature.data[0];
+                let stationData = hkoData.temperature.data.find(
+                    s => s.place.trim().toLowerCase() === targetStation.toLowerCase()
+                );
+                if (!stationData) {
+                    stationData = hkoData.temperature.data.find(s => s.place === "Hong Kong Observatory")
+                        || hkoData.temperature.data[0];
+                }
                 currentTemp = parseFloat(stationData.value);
-                stationName = stationData.place;
+                stationName = stationData.place.trim();
                 hkoIconCode = parseInt(hkoData.icon?.[0]) || 50;
                 document.getElementById('w-temp').innerText = currentTemp;
                 document.getElementById('w-hum').innerText = (hkoData.humidity?.data?.[0]?.value || "--") + "%";
                 document.getElementById('w-icon').innerText = getHKOIcon(hkoIconCode);
-                document.getElementById('w-station').innerText = `📍 ${stationData.place} | 🕒 ${formatTime(new Date())}`;
-            } catch (e) { console.error("HKO Current Weather Error:", e); return; }
+                document.getElementById('w-station').innerText = `📍 ${stationName} | 🕒 ${formatTime(new Date())}`;
+            } catch (e) {
+                console.error("HKO Current Weather Error:", e);
+            }
 
             // ② Open-Meteo（體感、風、降雨機率、今日最高／低）
             let maxRainProb = 0;
             try {
-                const [lat, lon] = STATION_COORDS[stationName] || STATION_COORDS["Sheung Shui"];
-                const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=apparent_temperature,wind_speed_10m&hourly=precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_hours=4`);
+                const coordKey = stationName || config.weatherStation || "Hong Kong Observatory";
+                const coord = STATION_COORDS[coordKey] || STATION_COORDS["Hong Kong Observatory"];
+                const lat = coord[0], lon = coord[1];
+                const omRes = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+                    `&current=apparent_temperature,wind_speed_10m` +
+                    `&hourly=precipitation_probability` +
+                    `&daily=temperature_2m_max,temperature_2m_min` +
+                    `&timezone=auto&forecast_days=1&forecast_hours=4`,
+                    { cache: 'no-store' }
+                );
                 const omData = await omRes.json();
                 maxRainProb = Math.max(...(omData.hourly?.precipitation_probability || [0]));
                 document.getElementById('w-rain').innerText = maxRainProb + "%";
@@ -453,22 +471,31 @@
                 const dMax = omData.daily?.temperature_2m_max?.[0], dMin = omData.daily?.temperature_2m_min?.[0];
                 if (dMax != null) document.getElementById('w-max').innerText = "↑" + Math.round(dMax) + "°";
                 if (dMin != null) document.getElementById('w-min').innerText = "↓" + Math.round(dMin) + "°";
-            } catch (e) { console.error("Open-Meteo Error:", e); }
+            } catch (e) {
+                console.error("Open-Meteo Error:", e);
+            }
 
-            const isRainingNow = (maxRainProb >= 50) || [53, 54, 62, 63, 64, 65].includes(hkoIconCode);
-            updateOutfit(currentTemp, isRainingNow);
-
+            // ③ 穿搭 + 走馬燈（保護 currentTemp）
+            if (currentTemp != null) {
+                const isRainingNow = (maxRainProb >= 50) || [53, 54, 62, 63, 64, 65].includes(hkoIconCode);
+                updateOutfit(currentTemp, isRainingNow);
+            }
             const actionBox = document.getElementById('action-tip');
             if (actionBox) {
                 if (maxRainProb >= 50) {
                     actionBox.style.display = "flex";
                     actionBox.innerHTML = `<div class="marquee">🌧️ Rain expected soon! Please bring in the laundry.${"&nbsp;".repeat(20)}</div>`;
-                } else actionBox.style.display = "none";
+                } else {
+                    actionBox.style.display = "none";
+                }
             }
 
-            // ③ HKO 九天預報（只用嚟顯示未來 3 日）
+            // ④ HKO 九天預報
             try {
-                const fndRes = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en');
+                const fndRes = await fetch(
+                    'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en',
+                    { cache: 'no-store' }
+                );
                 const fndData = await fndRes.json();
                 const forecast = fndData?.weatherForecast;
                 if (forecast && forecast.length > 0) {
@@ -488,7 +515,9 @@
                         fContainer.appendChild(div);
                     }
                 }
-            } catch (e) { console.error("HKO Forecast Error:", e); }
+            } catch (e) {
+                console.error("HKO Forecast Error:", e);
+            }
         }
 
         // Weather Warnings (English)
@@ -508,7 +537,7 @@
 
         async function fetchHKOWarning() {
             try {
-                const res = await fetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en&t=${Date.now()}`);
+                const res = await fetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en&t=${Date.now()}`, { cache: 'no-store' });
                 const data = await res.json();
                 const container = document.getElementById('warning-icons');
                 if (!container) return;
@@ -557,24 +586,14 @@
             if (e('outfit-card')) e('outfit-card').style.borderLeftColor = color;
         }
 
-        // HKO 天氣圖示代碼
+        // HKO 天氣圖示代碼（50-93 全部係天氣現象）
         function getHKOIcon(code) {
             code = parseInt(code);
-            if (code === 50) return "☀️";
-            if (code === 51 || code === 52) return "🌤️";
-            if (code === 53 || code === 54) return "🌦️";
-            if (code === 60 || code === 61) return "☁️";
-            if (code >= 62 && code <= 64) return "🌧️";
-            if (code === 65) return "⛈️";
+            if (code >= 50 && code <= 54) return "☀️";
+            if (code >= 60 && code <= 65) return "🌧️";
             if (code >= 70 && code <= 77) return "🌙";
-            if (code === 80) return "💨";
-            if (code === 81) return "🏜️";
-            if (code === 82) return "💧";
-            if (code >= 83 && code <= 85) return "🌫️";
-            if (code === 90) return "🥵";
-            if (code === 91) return "🌡️";
-            if (code === 92) return "🧥";
-            if (code === 93) return "🥶";
+            if (code >= 80 && code <= 85) return "🍃";
+            if (code >= 90 && code <= 93) return "⛈️";
             return "☁️";
         }
 
@@ -589,18 +608,18 @@
             const cacheKey = `bus_${config.busRoute}_${config.busStopKey}`;
             try {
                 const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
-                if (cached) {
+                if (cached && cached.route === config.busRoute && cached.stopKey === config.busStopKey) {
                     targetStopId = cached.stopId; targetStopSeq = cached.seq; targetDirection = cached.direction;
                 } else {
                     for (const direction of ["outbound", "inbound"]) {
-                        const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${config.busRoute}/${direction}/1`);
+                        const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${config.busRoute}/${direction}/1`, { cache: 'no-store' });
                         const stops = (await res.json()).data || [];
                         const details = await Promise.all(stops.map(s =>
-                            fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${s.stop}`).then(r => r.json()).catch(() => null)));
+                            fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${s.stop}`, { cache: 'no-store' }).then(r => r.json()).catch(() => null)));
                         const idx = details.findIndex(d => d?.data?.name_tc?.includes(config.busStopKey));
                         if (idx >= 0) {
                             targetStopId = stops[idx].stop; targetStopSeq = stops[idx].seq; targetDirection = direction;
-                            localStorage.setItem(cacheKey, JSON.stringify({ stopId: targetStopId, seq: targetStopSeq, direction }));
+                            localStorage.setItem(cacheKey, JSON.stringify({ stopId: targetStopId, seq: targetStopSeq, direction, route: config.busRoute, stopKey: config.busStopKey }));
                             break;
                         }
                     }
@@ -612,7 +631,7 @@
             } catch (e) {
                 console.error("Bus Stop Search Error:", e);
                 container.innerHTML = "Bus Service Unavailable";
-                setTimeout(findBusStop, 30000);   // 自動重試
+                setTimeout(findBusStop, 30000);
             }
         }
 
@@ -622,7 +641,7 @@
             if (!container) return;
             try {
                 const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${targetStopId}/${config.busRoute}/1`;
-                const res = await fetch(apiUrl);
+                const res = await fetch(apiUrl, { cache: 'no-store' });
                 const json = await res.json();
                 const dirCode = targetDirection === 'outbound' ? 'O' : 'I';
 
@@ -656,7 +675,7 @@
             fetchHKOWarning(); setInterval(fetchHKOWarning, 60 * 1000);
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
-            console.log("Dashboard V50 ready");
+            console.log("Dashboard V51 ready");
         };
     </script>
 </body>
