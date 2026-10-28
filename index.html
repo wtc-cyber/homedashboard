@@ -5,46 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V49</title>
+    <title>Smart Home Dashboard V50</title>
     <style>
-        :root {
-            --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50;
-            --warn: #ff9800; --bus: #E83434; --action: #FF5252;
-        }
+        :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
             background: var(--bg); color: var(--text); font-family: Roboto, "Segoe UI", sans-serif;
-            margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden;
-            user-select: none; position: relative; transition: background 0.5s;
-            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0; height: 100vh; height: 100dvh; width: 100vw; overflow: hidden;
+            user-select: none; position: relative; transition: background 0.5s; -webkit-tap-highlight-color: transparent;
         }
         .top-btn-group { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; gap: 15px; }
-        .circle-btn { background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); width: 45px; height: 45px; border-radius: 50%; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transition: all 0.3s; }
+        .circle-btn { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); width: 45px; height: 45px; border-radius: 50%; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transition: all 0.3s; }
         .circle-btn:active { background: rgba(255,255,255,0.6); transform: scale(0.95); }
         #orbit-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; opacity: 1; transition: opacity 1s ease; }
-        #orbit-container { width: 95vw; height: 95vh; transition: transform 2s ease-in-out; transform: translate(0, 0); }
+        #orbit-container { width: 95vw; height: 95vh; height: 95dvh; transition: transform 2s ease-in-out; transform: translate(0, 0); }
         .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 15px; height: 100%; }
         .card { background: var(--card); border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .col-main { display: flex; flex-direction: column; gap: 15px; height: 100%; }
         .weather-card { flex: 1.5; display: flex; flex-direction: column; padding: 20px; }
-        #action-tip {
-            display: none; position: relative; width: 94%; margin: 0 auto;
-            background: #9c0606; color: white; align-items: center; justify-content: center;
-            padding: 0 8px; min-height: 32px; border-radius: 8px; font-size: 1.3rem;
-            font-weight: 900; overflow: hidden; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
+        #action-tip { display: none; position: relative; width: 94%; margin: 0 auto; background: #9c0606; color: white; align-items: center; justify-content: center; padding: 0 8px; min-height: 32px; border-radius: 8px; font-size: 1.3rem; font-weight: 900; overflow: hidden; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .marquee { display: inline-block; white-space: nowrap; will-change: transform; animation: marquee 12s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-180%); } }
         .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px; position: relative; }
         .clock-left { display: flex; align-items: flex-end; gap: 15px; }
         .clock-time { font-size: 3em; font-weight: bold; line-height: 1; letter-spacing: -2px; }
         .warning-container { display: flex; gap: 5px; height: 40px; align-items: center; margin-bottom: 2px; flex-wrap: wrap; }
-        .warning-text-badge {
-            display: inline-flex; align-items: center; background: #2c0b0e; border: 1px solid #5a1a21;
-            color: #ffcccc; padding: 5px 10px; border-radius: 8px; font-size: 0.85em;
-            font-weight: bold; white-space: nowrap; box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
-        }
+        .warning-text-badge { display: inline-flex; align-items: center; background: #2c0b0e; border: 1px solid #5a1a21; color: #ffcccc; padding: 5px 10px; border-radius: 8px; font-size: 0.85em; font-weight: bold; white-space: nowrap; box-shadow: 0 0 8px rgba(231,76,60,0.3); }
         .clock-date { font-size: 1.1em; color: #aaa; text-align: right; }
-        .w-main-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; margin-bottom: 0px; }
+        .w-main-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; margin-bottom: 0; }
         .w-temp-big { font-size: 3.5em; font-weight: bold; line-height: 1; margin-left: -5px; letter-spacing: -3px; }
         .w-icon-big { font-size: 2.5em; margin-right: 10px; }
         .w-range-box { text-align: right; display: flex; flex-direction: column; justify-content: center; padding-right: 5px; }
@@ -231,8 +218,19 @@
         let config = {
             nightStart: 0, nightEnd: 6, wakeMins: 5,
             busRoute: "273B", busStopKey: "御景峰",
-            weatherStation: "Hong Kong Observatory",
-            latitude: 22.3, longitude: 114.1
+            weatherStation: "Hong Kong Observatory"
+        };
+
+        // 各氣象站大約座標（供 Open-Meteo 使用）
+        const STATION_COORDS = {
+            "Sheung Shui": [22.50, 114.13], "Hong Kong Observatory": [22.302, 114.174], "King's Park": [22.312, 114.173],
+            "Wong Chuk Hang": [22.248, 114.174], "Ta Kwu Ling": [22.528, 114.157], "Tai Po": [22.45, 114.17],
+            "Sha Tin": [22.40, 114.20], "Tuen Mun": [22.39, 113.97], "Tseung Kwan O": [22.31, 114.26],
+            "Sai Kung": [22.38, 114.27], "Cheung Chau": [22.20, 114.03], "Chek Lap Kok": [22.31, 113.92],
+            "Tsing Yi": [22.35, 114.11], "Shek Kong": [22.44, 114.08], "Hong Kong Park": [22.277, 114.162],
+            "Shau Kei Wan": [22.28, 114.22], "Kowloon City": [22.33, 114.19], "Happy Valley": [22.27, 114.19],
+            "Wong Tai Sin": [22.34, 114.19], "Stanley": [22.22, 114.21], "Kwun Tong": [22.31, 114.23],
+            "Sham Shui Po": [22.33, 114.16], "Yuen Long Park": [22.44, 114.02], "Tai Mei Tuk": [22.47, 114.24]
         };
 
         function loadConfig() {
@@ -252,10 +250,11 @@
         window.openSettings = () => document.getElementById('settings-overlay').style.display = 'flex';
         window.closeSettings = () => document.getElementById('settings-overlay').style.display = 'none';
         window.saveSettings = function() {
+            const num = (id, fallback) => { const v = parseInt(document.getElementById(id).value); return Number.isNaN(v) ? fallback : v; };
             config.weatherStation = document.getElementById('cfg-weather-station').value;
-            config.nightStart = parseInt(document.getElementById('cfg-night-start').value) || 0;
-            config.nightEnd   = parseInt(document.getElementById('cfg-night-end').value) || 6;
-            config.wakeMins   = parseInt(document.getElementById('cfg-wake-mins').value) || 5;
+            config.nightStart = num('cfg-night-start', 0);
+            config.nightEnd   = num('cfg-night-end', 6);
+            config.wakeMins   = Math.max(1, num('cfg-wake-mins', 5));
             config.busRoute   = document.getElementById('cfg-bus-route').value.trim() || "273B";
             config.busStopKey = document.getElementById('cfg-bus-stop').value.trim();
             localStorage.setItem('sh_config_v49', JSON.stringify(config));
@@ -338,11 +337,14 @@
             initAudio(); playMelody();
             document.getElementById('start-overlay').style.display = 'none';
             shiftScreen(); window.wakeUp();
-            try { document.documentElement.requestFullscreen(); } catch(e) {}
+            try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } catch(e) {}
         });
         window.toggleFullScreen = function() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
+            if (!document.documentElement.requestFullscreen) return;   // iOS Safari 不支援
+            try {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+                else document.exitFullscreen();
+            } catch(e) {}
         };
 
         // Google Calendar + Tasks
@@ -353,19 +355,22 @@
                 const res = await fetch(GOOGLE_GAS_URL);
                 const data = await res.json();
                 const events = data.calendar || [];
+                const nowTs = new Date();
                 let scheduleHTML = "";
-                events.sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 5).forEach(event => {
-                    const start = new Date(event.start);
-                    const now = new Date();
-                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                    const eventDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-                    const diffDays = Math.round((eventDay - today) / (1000 * 60 * 60 * 24));
-                    let dateText = "";
-                    if (diffDays === 0) dateText = "Today";
-                    else if (diffDays === 1) dateText = "Tomorrow";
-                    else dateText = start.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" });
-                    scheduleHTML += dateText + " " + start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + " " + escapeHTML(event.title) + "<br>";
-                });
+                events
+                    // 過濾已完結的事件（如有 end 就用 end，否則用 start）；全日事件以 start 日計
+                    .filter(e => { const t = new Date(e.end || e.start); return isNaN(t) || t > nowTs || new Date(e.start).toDateString() === nowTs.toDateString() && e.allDay; })
+                    .sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 5).forEach(event => {
+                        const start = new Date(event.start);
+                        const today = new Date(nowTs.getFullYear(), nowTs.getMonth(), nowTs.getDate());
+                        const eventDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                        const diffDays = Math.round((eventDay - today) / (1000 * 60 * 60 * 24));
+                        let dateText = "";
+                        if (diffDays === 0) dateText = "Today";
+                        else if (diffDays === 1) dateText = "Tomorrow";
+                        else dateText = start.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" });
+                        scheduleHTML += dateText + " " + start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + " " + escapeHTML(event.title) + "<br>";
+                    });
                 document.getElementById("schedule-text").innerHTML = scheduleHTML || "No Schedule";
 
                 const tasks = data.tasks || [];
@@ -405,62 +410,74 @@
         // Weather
         function formatTime(date) { return String(date.getHours()).padStart(2, '0') + ":" + String(date.getMinutes()).padStart(2, '0'); }
 
+        const stationMap = {
+            "上水": "Sheung Shui", "天文台": "Hong Kong Observatory", "京士柏": "King's Park",
+            "黃竹坑": "Wong Chuk Hang", "打鼓嶺": "Ta Kwu Ling", "大埔": "Tai Po", "沙田": "Sha Tin",
+            "屯門": "Tuen Mun", "將軍澳": "Tseung Kwan O", "西貢": "Sai Kung", "長洲": "Cheung Chau",
+            "赤鱲角": "Chek Lap Kok", "青衣": "Tsing Yi", "石崗": "Shek Kong", "香港公園": "Hong Kong Park",
+            "筲箕灣": "Shau Kei Wan", "九龍城": "Kowloon City", "跑馬地": "Happy Valley",
+            "黃大仙": "Wong Tai Sin", "赤柱": "Stanley", "觀塘": "Kwun Tong", "深水埗": "Sham Shui Po",
+            "元朗公園": "Yuen Long Park", "大美督": "Tai Mei Tuk"
+        };
+
         async function fetchWeather() {
+            let currentTemp = null, hkoIconCode = 50, stationName = "";
+
+            // ① HKO 現時天氣（失敗就整個放棄，因為冇溫度）
             try {
                 const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en');
                 const hkoData = await res.json();
-                const stationMap = {
-                    "上水": "Sheung Shui", "天文台": "Hong Kong Observatory", "京士柏": "King's Park",
-                    "黃竹坑": "Wong Chuk Hang", "打鼓嶺": "Ta Kwu Ling", "大埔": "Tai Po", "沙田": "Sha Tin",
-                    "屯門": "Tuen Mun", "將軍澳": "Tseung Kwan O", "西貢": "Sai Kung", "長洲": "Cheung Chau",
-                    "赤鱲角": "Chek Lap Kok", "青衣": "Tsing Yi", "石崗": "Shek Kong", "香港公園": "Hong Kong Park",
-                    "筲箕灣": "Shau Kei Wan", "九龍城": "Kowloon City", "跑馬地": "Happy Valley",
-                    "黃大仙": "Wong Tai Sin", "赤柱": "Stanley", "觀塘": "Kwun Tong", "深水埗": "Sham Shui Po",
-                    "元朗公園": "Yuen Long Park", "大美督": "Tai Mei Tuk"
-                };
                 let targetStation = (config.weatherStation || "Hong Kong Observatory").trim();
                 if (stationMap[targetStation]) targetStation = stationMap[targetStation];
                 let stationData = hkoData.temperature.data.find(s => s.place.toLowerCase() === targetStation.toLowerCase());
                 if (!stationData) stationData = hkoData.temperature.data.find(s => s.place === "Hong Kong Observatory") || hkoData.temperature.data[0];
-                const currentTemp = parseFloat(stationData.value);
-                const hkoIconCode = hkoData.icon?.[0] || 50;
+                currentTemp = parseFloat(stationData.value);
+                stationName = stationData.place;
+                hkoIconCode = parseInt(hkoData.icon?.[0]) || 50;
                 document.getElementById('w-temp').innerText = currentTemp;
                 document.getElementById('w-hum').innerText = (hkoData.humidity?.data?.[0]?.value || "--") + "%";
                 document.getElementById('w-icon').innerText = getHKOIcon(hkoIconCode);
                 document.getElementById('w-station').innerText = `📍 ${stationData.place} | 🕒 ${formatTime(new Date())}`;
+            } catch (e) { console.error("HKO Current Weather Error:", e); return; }
 
-                const lat = config.latitude || 22.3;
-                const lon = config.longitude || 114.1;
-                const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=apparent_temperature,wind_speed_10m&hourly=precipitation_probability&timezone=auto&forecast_hours=4`);
+            // ② Open-Meteo（體感、風、降雨機率、今日最高／低）
+            let maxRainProb = 0;
+            try {
+                const [lat, lon] = STATION_COORDS[stationName] || STATION_COORDS["Sheung Shui"];
+                const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=apparent_temperature,wind_speed_10m&hourly=precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_hours=4`);
                 const omData = await omRes.json();
-                const maxRainProb = Math.max(...(omData.hourly?.precipitation_probability || [0]));
+                maxRainProb = Math.max(...(omData.hourly?.precipitation_probability || [0]));
                 document.getElementById('w-rain').innerText = maxRainProb + "%";
                 document.getElementById('w-feels').innerText = (omData.current?.apparent_temperature ?? 0).toFixed(1) + "°";
                 document.getElementById('w-wind').innerText = Math.round(omData.current?.wind_speed_10m ?? 0) + " km/h";
+                const dMax = omData.daily?.temperature_2m_max?.[0], dMin = omData.daily?.temperature_2m_min?.[0];
+                if (dMax != null) document.getElementById('w-max').innerText = "↑" + Math.round(dMax) + "°";
+                if (dMin != null) document.getElementById('w-min').innerText = "↓" + Math.round(dMin) + "°";
+            } catch (e) { console.error("Open-Meteo Error:", e); }
 
-                const isRainingNow = (maxRainProb >= 50) || (hkoIconCode >= 60 && hkoIconCode <= 65) || (hkoIconCode >= 90 && hkoIconCode <= 93);
-                if (typeof updateOutfit === 'function') updateOutfit(currentTemp, isRainingNow);
+            const isRainingNow = (maxRainProb >= 50) || [53, 54, 62, 63, 64, 65].includes(hkoIconCode);
+            updateOutfit(currentTemp, isRainingNow);
 
-                const actionBox = document.getElementById('action-tip');
-                if (actionBox) {
-                    if (maxRainProb >= 50) {
-                        actionBox.style.display = "flex";
-                        actionBox.innerHTML = `<div class="marquee">🌧️ Rain expected soon! Please bring in the laundry.${"&nbsp;".repeat(20)}</div>`;
-                    } else actionBox.style.display = "none";
-                }
+            const actionBox = document.getElementById('action-tip');
+            if (actionBox) {
+                if (maxRainProb >= 50) {
+                    actionBox.style.display = "flex";
+                    actionBox.innerHTML = `<div class="marquee">🌧️ Rain expected soon! Please bring in the laundry.${"&nbsp;".repeat(20)}</div>`;
+                } else actionBox.style.display = "none";
+            }
 
+            // ③ HKO 九天預報（只用嚟顯示未來 3 日）
+            try {
                 const fndRes = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en');
                 const fndData = await fndRes.json();
                 const forecast = fndData?.weatherForecast;
                 if (forecast && forecast.length > 0) {
-                    document.getElementById('w-max').innerText = "↑" + forecast[0].forecastMaxtemp.value + "°";
-                    document.getElementById('w-min').innerText = "↓" + forecast[0].forecastMintemp.value + "°";
                     const fContainer = document.getElementById('forecast-container');
                     fContainer.innerHTML = "";
                     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                     const now = new Date();
                     const todayStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-                    let startIndex = (forecast[0].forecastDate > todayStr) ? 0 : 1;
+                    const startIndex = (forecast[0].forecastDate > todayStr) ? 0 : 1;
                     for (let i = startIndex; i < startIndex + 3; i++) {
                         if (!forecast[i]) break;
                         const f = forecast[i];
@@ -471,7 +488,7 @@
                         fContainer.appendChild(div);
                     }
                 }
-            } catch (e) { console.error("Weather Update Error:", e); }
+            } catch (e) { console.error("HKO Forecast Error:", e); }
         }
 
         // Weather Warnings (English)
@@ -540,51 +557,62 @@
             if (e('outfit-card')) e('outfit-card').style.borderLeftColor = color;
         }
 
+        // HKO 天氣圖示代碼
         function getHKOIcon(code) {
-            if (code >= 50 && code <= 54) return "☀️";
-            if (code >= 60 && code <= 65) return "🌧️";
+            code = parseInt(code);
+            if (code === 50) return "☀️";
+            if (code === 51 || code === 52) return "🌤️";
+            if (code === 53 || code === 54) return "🌦️";
+            if (code === 60 || code === 61) return "☁️";
+            if (code >= 62 && code <= 64) return "🌧️";
+            if (code === 65) return "⛈️";
             if (code >= 70 && code <= 77) return "🌙";
-            if (code >= 80 && code <= 85) return "🍃";
-            if (code >= 90 && code <= 93) return "⛈️";
+            if (code === 80) return "💨";
+            if (code === 81) return "🏜️";
+            if (code === 82) return "💧";
+            if (code >= 83 && code <= 85) return "🌫️";
+            if (code === 90) return "🥵";
+            if (code === 91) return "🌡️";
+            if (code === 92) return "🧥";
+            if (code === 93) return "🥶";
             return "☁️";
         }
 
-        // Bus ETA — 改用 /eta/{stopId}/{route}/{serviceType}
-        let targetStopId = null;     // 16 位十六進制 stopId
-        let targetStopSeq = null;    // 站序（用於驗證/顯示）
+        // Bus ETA
+        let targetStopId = null;
+        let targetStopSeq = null;
         let targetDirection = null;
 
         async function findBusStop() {
             const container = document.getElementById('bus-container');
             if (!container) return;
+            const cacheKey = `bus_${config.busRoute}_${config.busStopKey}`;
             try {
-                const directions = ["outbound", "inbound"];
-                let found = false;
-                for (const direction of directions) {
-                    const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${config.busRoute}/${direction}/1`);
-                    const data = await res.json();
-                    const stops = data.data || [];
-                    for (let s of stops) {
-                        const detailRes = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${s.stop}`);
-                        const detail = await detailRes.json();
-                        if (!detail.data) continue;
-                        if (detail.data.name_tc.includes(config.busStopKey)) {
-                            targetStopId = s.stop;        // ✅ 真正的 stopId（十六進制）
-                            targetStopSeq = s.seq;        // 保留站序（1-indexed）
-                            targetDirection = direction;
-                            found = true;
+                const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+                if (cached) {
+                    targetStopId = cached.stopId; targetStopSeq = cached.seq; targetDirection = cached.direction;
+                } else {
+                    for (const direction of ["outbound", "inbound"]) {
+                        const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${config.busRoute}/${direction}/1`);
+                        const stops = (await res.json()).data || [];
+                        const details = await Promise.all(stops.map(s =>
+                            fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${s.stop}`).then(r => r.json()).catch(() => null)));
+                        const idx = details.findIndex(d => d?.data?.name_tc?.includes(config.busStopKey));
+                        if (idx >= 0) {
+                            targetStopId = stops[idx].stop; targetStopSeq = stops[idx].seq; targetDirection = direction;
+                            localStorage.setItem(cacheKey, JSON.stringify({ stopId: targetStopId, seq: targetStopSeq, direction }));
                             break;
                         }
                     }
-                    if (found) break;
                 }
-                if (!found) { container.innerHTML = "Stop Not Found"; return; }
+                if (!targetStopId) { container.innerHTML = "Stop Not Found"; return; }
                 fetchBusETA();
                 if (window.busTimer) clearInterval(window.busTimer);
                 window.busTimer = setInterval(fetchBusETA, 30000);
             } catch (e) {
                 console.error("Bus Stop Search Error:", e);
                 container.innerHTML = "Bus Service Unavailable";
+                setTimeout(findBusStop, 30000);   // 自動重試
             }
         }
 
@@ -594,13 +622,13 @@
             if (!container) return;
             try {
                 const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${targetStopId}/${config.busRoute}/1`;
-                console.log("Fetching ETA:", apiUrl, "| seq:", targetStopSeq, "| dir:", targetDirection);
                 const res = await fetch(apiUrl);
                 const json = await res.json();
-                console.log("ETA Response:", json);
+                const dirCode = targetDirection === 'outbound' ? 'O' : 'I';
 
                 const buses = (json.data || [])
-                    .filter(b => b.eta && parseInt(b.seq) === parseInt(targetStopSeq))
+                    .filter(b => b.eta && b.dir === dirCode && parseInt(b.seq) === parseInt(targetStopSeq))
+                    .filter(b => new Date(b.eta) - Date.now() > -60000)
                     .sort((a, b) => new Date(a.eta) - new Date(b.eta))
                     .slice(0, 3);
 
@@ -610,7 +638,6 @@
                 buses.forEach((bus, index) => {
                     const etaTime = new Date(bus.eta);
                     const diffMins = Math.floor((etaTime - new Date()) / 60000);
-                    if (diffMins < -1) return;
                     const div = document.createElement('div');
                     div.className = "bus-row" + (index === 0 ? " first" : "");
                     const timeStr = etaTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -629,7 +656,7 @@
             fetchHKOWarning(); setInterval(fetchHKOWarning, 60 * 1000);
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
-            console.log("Dashboard ready");
+            console.log("Dashboard V50 ready");
         };
     </script>
 </body>
