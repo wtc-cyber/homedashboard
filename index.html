@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V65</title>
+    <title>Smart Home Dashboard V66</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -19,12 +19,10 @@
         #orbit-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; opacity: 1; transition: opacity 1s ease; }
         #orbit-container { width: 97vw; height: 97vh; height: 97dvh; transition: transform 2s ease-in-out; transform: translate(0, 0); }
 
-        /* 整體網格：收窄 gap */
         .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 8px; height: 100%; }
         .card { background: var(--card); border-radius: 12px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .col-main { display: flex; flex-direction: column; gap: 8px; height: 100%; }
 
-        /* 天氣卡：大幅壓縮 */
         .weather-card { flex: 1.4; display: flex; flex-direction: column; padding: 10px 12px; }
         .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 3px; }
         .clock-left { display: flex; align-items: flex-end; gap: 10px; }
@@ -55,7 +53,7 @@
         .fd-icon { font-size: 1.2em; margin-bottom: 1px; }
         .fd-temp { font-size: 0.85em; font-weight: bold; color: #fff; }
 
-        /* ===== Commute Card (V65 緊湊) ===== */
+        /* ===== Commute Card V66 ===== */
         .commute-card {
             flex: 1; background: #0d111a; border-left: 5px solid #2196F3;
             padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; overflow: hidden;
@@ -69,7 +67,6 @@
         .walk-inline { font-size: 0.8em; color: #FFC107; font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .commute-update-time { font-size: 0.62em; color: #888; font-weight: normal; white-space: nowrap; }
 
-        /* 滑動頁面 */
         .commute-pages {
             display: flex;
             overflow-x: auto;
@@ -89,17 +86,60 @@
             box-sizing: border-box;
         }
 
+        /* V66：橫排 drive → total */
         .commute-item {
-            background: #1a1a1a; border-radius: 8px; padding: 5px 4px;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
+            background: #1a1a1a; border-radius: 8px; padding: 6px 8px;
+            display: flex; flex-direction: column; align-items: stretch;
             border-left: 3px solid transparent; transition: border-left-color 0.4s;
+            min-width: 0;
         }
-        .commute-label { font-size: 0.62em; color: #999; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        .commute-time { font-size: 1.4em; font-weight: bold; color: #fff; line-height: 1.1; font-variant-numeric: tabular-nums; }
-        .commute-sub { font-size: 0.62em; color: #aaa; margin-top: 1px; }
-        .commute-total { font-size: 0.65em; color: #4CAF50; font-weight: bold; margin-top: 2px; padding-top: 2px; border-top: 1px solid #2a2a2a; width: 100%; text-align: center; font-variant-numeric: tabular-nums; }
+        .commute-label {
+            font-size: 0.68em; color: #999; text-transform: uppercase;
+            margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            text-align: center;
+        }
+        .commute-times-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 4px;
+            width: 100%;
+        }
+        .commute-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+        .commute-time {
+            font-size: 1.9em;
+            font-weight: bold;
+            color: #fff;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+        .commute-total-value {
+            font-size: 1.9em;
+            font-weight: bold;
+            color: #4CAF50;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+        .commute-unit {
+            font-size: 0.62em;
+            color: #888;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+        .commute-arrow {
+            font-size: 1em;
+            color: #555;
+            padding-bottom: 14px;
+            flex-shrink: 0;
+        }
 
-        /* ✅ 導航列：大箭頭按鈕 */
+        /* 導航 */
         .page-nav {
             display: flex;
             justify-content: space-between;
@@ -122,15 +162,8 @@
             -webkit-tap-highlight-color: transparent;
             transition: all 0.15s;
         }
-        .page-nav-btn:active {
-            background: #1565C0;
-            transform: scale(0.92);
-        }
-        .page-nav-btn:disabled {
-            background: #333;
-            color: #666;
-            cursor: default;
-        }
+        .page-nav-btn:active { background: #1565C0; transform: scale(0.92); }
+        .page-nav-btn:disabled { background: #333; color: #666; cursor: default; }
         .commute-dots {
             display: flex;
             justify-content: center;
@@ -164,7 +197,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* 側欄 */
         .col-side { display: flex; flex-direction: column; gap: 8px; height: 100%; }
         .schedule-box { flex: 0 0 35%; border-top: 3px solid #FFD700; overflow: hidden; display: flex; flex-direction: column; padding: 8px; }
         .side-title { font-size: 0.95em; color: #aaa; font-weight: bold; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 3px; }
@@ -196,7 +228,6 @@
         body.night-mode #orbit-wrapper { opacity: 0; }
         body.night-mode .top-btn-group { display: none; }
 
-        /* 設定 */
         #settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20,20,20,0.95); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .settings-box { background: #222; width: 520px; max-width: 95vw; max-height: 92vh; overflow-y: auto; padding: 22px; border-radius: 16px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .set-title { font-size: 1.5em; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 8px; color: #fff; }
@@ -336,35 +367,66 @@
                             <div class="commute-page">
                                 <div class="commute-item" id="route-school1">
                                     <span class="commute-label" id="label-school1">🏫 Fanling Rhenish</span>
-                                    <span class="commute-time" id="time-school1">--</span>
-                                    <span class="commute-sub" id="sub-school1">min drive</span>
-                                    <span class="commute-total" id="total-school1">Total: --</span>
+                                    <div class="commute-times-row">
+                                        <div class="commute-stat">
+                                            <span class="commute-time" id="time-school1">--</span>
+                                            <span class="commute-unit">drive</span>
+                                        </div>
+                                        <span class="commute-arrow">→</span>
+                                        <div class="commute-stat">
+                                            <span class="commute-total-value" id="total-school1">--</span>
+                                            <span class="commute-unit">total</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="commute-item" id="route-school2">
                                     <span class="commute-label" id="label-school2">🏫 Yuen Long Gov't</span>
-                                    <span class="commute-time" id="time-school2">--</span>
-                                    <span class="commute-sub" id="sub-school2">min drive</span>
-                                    <span class="commute-total" id="total-school2">Total: --</span>
+                                    <div class="commute-times-row">
+                                        <div class="commute-stat">
+                                            <span class="commute-time" id="time-school2">--</span>
+                                            <span class="commute-unit">drive</span>
+                                        </div>
+                                        <span class="commute-arrow">→</span>
+                                        <div class="commute-stat">
+                                            <span class="commute-total-value" id="total-school2">--</span>
+                                            <span class="commute-unit">total</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="commute-page">
                                 <div class="commute-item" id="route-bride">
                                     <span class="commute-label" id="label-bride">🏞️ Bride's Pool</span>
-                                    <span class="commute-time" id="time-bride">--</span>
-                                    <span class="commute-sub" id="sub-bride">min drive</span>
-                                    <span class="commute-total" id="total-bride">Total: --</span>
+                                    <div class="commute-times-row">
+                                        <div class="commute-stat">
+                                            <span class="commute-time" id="time-bride">--</span>
+                                            <span class="commute-unit">drive</span>
+                                        </div>
+                                        <span class="commute-arrow">→</span>
+                                        <div class="commute-stat">
+                                            <span class="commute-total-value" id="total-bride">--</span>
+                                            <span class="commute-unit">total</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="commute-item" id="route-whitehead">
                                     <span class="commute-label" id="label-whitehead">🚴 Whitehead</span>
-                                    <span class="commute-time" id="time-whitehead">--</span>
-                                    <span class="commute-sub" id="sub-whitehead">min drive</span>
-                                    <span class="commute-total" id="total-whitehead">Total: --</span>
+                                    <div class="commute-times-row">
+                                        <div class="commute-stat">
+                                            <span class="commute-time" id="time-whitehead">--</span>
+                                            <span class="commute-unit">drive</span>
+                                        </div>
+                                        <span class="commute-arrow">→</span>
+                                        <div class="commute-stat">
+                                            <span class="commute-total-value" id="total-whitehead">--</span>
+                                            <span class="commute-unit">total</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- ✅ 大箭頭導航 -->
                         <div class="page-nav">
                             <button class="page-nav-btn" id="prev-page" aria-label="Previous">◀</button>
                             <div class="commute-dots" id="commute-dots">
@@ -439,7 +501,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v65');
+            const stored = localStorage.getItem('sh_config_v66');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -487,7 +549,7 @@
             config.roundaboutA = document.getElementById('cfg-roundabout-a').value.trim() || "22.497277,114.130785";
             config.roundaboutB = document.getElementById('cfg-roundabout-b').value.trim() || "22.497104,114.130993";
             config.roundaboutMid = document.getElementById('cfg-roundabout-mid').value.trim();
-            localStorage.setItem('sh_config_v65', JSON.stringify(config));
+            localStorage.setItem('sh_config_v66', JSON.stringify(config));
             location.reload();
         };
 
@@ -577,7 +639,6 @@
             } catch(e) {}
         };
 
-        // ✅ V65：大箭頭導航 + 滑動
         function setupCommuteSwipe() {
             const scrollEl = document.getElementById('commute-pages');
             const dots = document.querySelectorAll('#commute-dots .dot');
@@ -878,17 +939,16 @@
             timeEl.textContent = walkResult.minutes + ' min';
         }
 
+        // V66：drive 和 total 橫排
         function setRouteDisplay(prefix, driveResult, walkResult, thresholds) {
             const timeEl = document.getElementById(`time-${prefix}`);
-            const subEl = document.getElementById(`sub-${prefix}`);
             const totalEl = document.getElementById(`total-${prefix}`);
             const box = document.getElementById(`route-${prefix}`);
-            if (!timeEl || !subEl || !box) return;
+            if (!timeEl || !box) return;
 
             if (!driveResult || driveResult.error) {
                 timeEl.textContent = "ERR";
-                subEl.textContent = driveResult?.error === 'GAS_ERROR' ? 'GAS Error' : (driveResult?.error || 'No data');
-                if (totalEl) totalEl.textContent = 'Total: --';
+                if (totalEl) totalEl.textContent = "--";
                 timeEl.style.color = "#f44336";
                 box.style.borderLeftColor = "#555";
                 return;
@@ -905,10 +965,8 @@
             const totalMins = driveResult.minutes + walkMins;
 
             timeEl.textContent = driveResult.minutes;
-            subEl.textContent = 'min drive';
             timeEl.style.color = "#fff";
-
-            if (totalEl) totalEl.textContent = `Total: ${totalMins} min`;
+            if (totalEl) totalEl.textContent = totalMins;
 
             if (driveResult.minutes > thresholds[1]) box.style.borderLeftColor = "#F44336";
             else if (driveResult.minutes > thresholds[0]) box.style.borderLeftColor = "#FF9800";
@@ -1054,7 +1112,7 @@
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
             updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
-            console.log("Dashboard V65 ready");
+            console.log("Dashboard V66 ready");
         };
     </script>
 </body>
