@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V60</title>
+    <title>Smart Home Dashboard V64</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
@@ -50,25 +50,42 @@
 
         .commute-card {
             flex: 1; background: #0d111a; border-left: 6px solid #2196F3;
-            padding: 12px 15px; display: flex; flex-direction: column; gap: 8px; overflow: hidden;
+            padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; overflow: hidden;
             transition: border-left-color 0.5s;
         }
         .commute-header {
-            font-size: 1.1em; font-weight: bold; display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid #333; padding-bottom: 4px;
-        }
-        .commute-update-time { font-size: 0.7em; color: #888; font-weight: normal; }
-
-        .walk-to-car {
-            background: #1a1a1a; border-radius: 8px; padding: 6px 12px;
+            font-size: 1.05em; font-weight: bold;
             display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.85em; border-left: 3px solid #FFC107;
+            border-bottom: 1px solid #333; padding-bottom: 5px; gap: 8px;
         }
-        .walk-label { color: #aaa; }
-        .walk-time { font-weight: bold; color: #FFC107; font-variant-numeric: tabular-nums; font-size: 1.1em; }
-        .walk-distance { color: #888; font-size: 0.85em; }
+        .walk-inline {
+            font-size: 0.85em; color: #FFC107; font-weight: bold;
+            font-variant-numeric: tabular-nums; white-space: nowrap;
+        }
+        .commute-update-time {
+            font-size: 0.68em; color: #888; font-weight: normal; white-space: nowrap;
+        }
 
-        .commute-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .commute-pages {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+        .commute-pages::-webkit-scrollbar { display: none; }
+
+        .commute-page {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            box-sizing: border-box;
+        }
+
         .commute-item {
             background: #1a1a1a; border-radius: 10px; padding: 8px;
             display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -79,10 +96,39 @@
         .commute-sub { font-size: 0.7em; color: #aaa; margin-top: 1px; }
         .commute-total { font-size: 0.72em; color: #4CAF50; font-weight: bold; margin-top: 3px; padding-top: 3px; border-top: 1px solid #2a2a2a; width: 100%; text-align: center; font-variant-numeric: tabular-nums; }
 
-        .roundabout-status { background: #1a1a1a; border-radius: 10px; padding: 8px 12px; border-left: 3px solid #555; transition: border-left-color 0.4s; }
-        .roundabout-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; font-weight: bold; margin-bottom: 4px; }
-        .roundabout-badge { font-size: 0.75em; padding: 2px 10px; border-radius: 4px; font-weight: bold; background: #444; color: #fff; font-variant-numeric: tabular-nums; }
-        .roundabout-detail { font-size: 0.72em; color: #aaa; line-height: 1.3; }
+        .commute-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 4px 0 0;
+        }
+        .commute-dots .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #444;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .commute-dots .dot.active {
+            background: #2196F3;
+            width: 18px;
+            border-radius: 3px;
+        }
+
+        .roundabout-status {
+            background: #1a1a1a; border-radius: 8px; padding: 6px 12px;
+            border-left: 3px solid #555;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.88em; font-weight: bold;
+            transition: border-left-color 0.4s;
+        }
+        .roundabout-label { color: #ccc; }
+        .roundabout-badge {
+            font-size: 0.8em; padding: 2px 10px; border-radius: 4px;
+            font-weight: bold; background: #444; color: #fff;
+            font-variant-numeric: tabular-nums;
+        }
 
         .col-side { display: flex; flex-direction: column; gap: 10px; height: 100%; }
         .schedule-box { flex: 0 0 35%; border-top: 4px solid #FFD700; overflow: hidden; display: flex; flex-direction: column; }
@@ -190,12 +236,15 @@
             <div class="set-row"><span class="set-label">School 1 (Lat,Lng)</span><input type="text" id="cfg-school1-latlng" class="set-input"></div>
             <div class="set-row"><span class="set-label">School 2 (Lat,Lng)</span><input type="text" id="cfg-school2-latlng" class="set-input"></div>
 
+            <div class="set-section">Extra Destinations (Swipe to view)</div>
+            <div class="set-row"><span class="set-label">Bride's Pool (Lat,Lng)</span><input type="text" id="cfg-bride-pool" class="set-input"></div>
+            <div class="set-row"><span class="set-label">Whitehead (Lat,Lng)</span><input type="text" id="cfg-whitehead" class="set-input"></div>
+
             <div class="set-section">Walk to Car</div>
             <div class="set-hint">如果 Google 步行估算不準（例如繞路），在這裡填入你實測的時間（分鐘）。留空 = 使用 Google 估算。</div>
             <div class="set-row"><span class="set-label">Walk Time Override (min)</span><input type="number" id="cfg-walk-override" class="set-input" min="0" max="60" placeholder="留空 = 自動"></div>
 
             <div class="set-section">Roundabout Probe</div>
-            <div class="set-hint">如果繞圈時間永遠約 1 分鐘，可能 API 走了直線。填一個「對面」座標強制繞圈。</div>
             <div class="set-row"><span class="set-label">Entry (Lat,Lng)</span><input type="text" id="cfg-roundabout-a" class="set-input"></div>
             <div class="set-row"><span class="set-label">Exit (Lat,Lng)</span><input type="text" id="cfg-roundabout-b" class="set-input"></div>
             <div class="set-row"><span class="set-label">Mid (optional)</span><input type="text" id="cfg-roundabout-mid" class="set-input" placeholder="留空 = 不強制繞圈"></div>
@@ -243,36 +292,50 @@
                     <div class="card commute-card" id="commute-card">
                         <div class="commute-header">
                             <span>🚗 Family Commute</span>
+                            <span class="walk-inline" title="Walk to car">🚶 <span id="walk-time">--</span></span>
                             <span class="commute-update-time" id="commute-update-time">--</span>
                         </div>
 
-                        <div class="walk-to-car">
-                            <span class="walk-label">🚶 Walk to car</span>
-                            <span class="walk-time" id="walk-time">-- min</span>
-                            <span class="walk-distance" id="walk-distance">--</span>
+                        <div class="commute-pages" id="commute-pages">
+                            <div class="commute-page">
+                                <div class="commute-item" id="route-school1">
+                                    <span class="commute-label" id="label-school1">🏫 Fanling Rhenish</span>
+                                    <span class="commute-time" id="time-school1">--</span>
+                                    <span class="commute-sub" id="sub-school1">min drive</span>
+                                    <span class="commute-total" id="total-school1">Total: --</span>
+                                </div>
+                                <div class="commute-item" id="route-school2">
+                                    <span class="commute-label" id="label-school2">🏫 Yuen Long Gov't</span>
+                                    <span class="commute-time" id="time-school2">--</span>
+                                    <span class="commute-sub" id="sub-school2">min drive</span>
+                                    <span class="commute-total" id="total-school2">Total: --</span>
+                                </div>
+                            </div>
+
+                            <div class="commute-page">
+                                <div class="commute-item" id="route-bride">
+                                    <span class="commute-label" id="label-bride">🏞️ Bride's Pool</span>
+                                    <span class="commute-time" id="time-bride">--</span>
+                                    <span class="commute-sub" id="sub-bride">min drive</span>
+                                    <span class="commute-total" id="total-bride">Total: --</span>
+                                </div>
+                                <div class="commute-item" id="route-whitehead">
+                                    <span class="commute-label" id="label-whitehead">🚴 Whitehead</span>
+                                    <span class="commute-time" id="time-whitehead">--</span>
+                                    <span class="commute-sub" id="sub-whitehead">min drive</span>
+                                    <span class="commute-total" id="total-whitehead">Total: --</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="commute-grid">
-                            <div class="commute-item" id="route-school1">
-                                <span class="commute-label" id="label-school1">🏫 Fanling Rhenish</span>
-                                <span class="commute-time" id="time-school1">--</span>
-                                <span class="commute-sub" id="sub-school1">drive min</span>
-                                <span class="commute-total" id="total-school1">Total: --</span>
-                            </div>
-                            <div class="commute-item" id="route-school2">
-                                <span class="commute-label" id="label-school2">🏫 Yuen Long Gov't</span>
-                                <span class="commute-time" id="time-school2">--</span>
-                                <span class="commute-sub" id="sub-school2">drive min</span>
-                                <span class="commute-total" id="total-school2">Total: --</span>
-                            </div>
+                        <div class="commute-dots" id="commute-dots">
+                            <span class="dot active" data-page="0"></span>
+                            <span class="dot" data-page="1"></span>
                         </div>
 
                         <div class="roundabout-status" id="roundabout-box">
-                            <div class="roundabout-head">
-                                <span>🔄 雞嶺迴旋處</span>
-                                <span class="roundabout-badge" id="roundabout-badge">--</span>
-                            </div>
-                            <div class="roundabout-detail" id="roundabout-detail">Probing...</div>
+                            <span class="roundabout-label">🔄 雞嶺迴旋處</span>
+                            <span class="roundabout-badge" id="roundabout-badge">--</span>
                         </div>
                     </div>
                 </div>
@@ -313,7 +376,11 @@
             school1Name: "Fanling Rhenish",
             school2LatLng: "22.4428,114.04369",
             school2Name: "Yuen Long Gov't",
-            walkOverride: "",  // 手動覆蓋步行時間（分鐘）
+            bridePoolLatLng: "22.476333,114.236316",
+            bridePoolName: "Bride's Pool",
+            whiteheadLatLng: "22.435520,114.240642",
+            whiteheadName: "Whitehead",
+            walkOverride: "",
             roundaboutA: "22.497277,114.130785",
             roundaboutB: "22.497104,114.130993",
             roundaboutMid: ""
@@ -331,7 +398,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v60');
+            const stored = localStorage.getItem('sh_config_v64');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -344,6 +411,8 @@
             set('cfg-parking-latlng', config.parkingLatLng);
             set('cfg-school1-latlng', config.school1LatLng);
             set('cfg-school2-latlng', config.school2LatLng);
+            set('cfg-bride-pool', config.bridePoolLatLng);
+            set('cfg-whitehead', config.whiteheadLatLng);
             set('cfg-walk-override', config.walkOverride || '');
             set('cfg-roundabout-a', config.roundaboutA);
             set('cfg-roundabout-b', config.roundaboutB);
@@ -352,11 +421,8 @@
             document.getElementById('bus-name').innerText = config.busStopKey;
             document.getElementById('label-school1').innerText = `🏫 ${config.school1Name}`;
             document.getElementById('label-school2').innerText = `🏫 ${config.school2Name}`;
-
-            // 診斷：印出當前座標
-            console.log('📍 Home:', config.homeLatLng);
-            console.log('🅿️ Parking:', config.parkingLatLng);
-            console.log('🚶 Walk Override:', config.walkOverride || '(auto)');
+            document.getElementById('label-bride').innerText = `🏞️ ${config.bridePoolName}`;
+            document.getElementById('label-whitehead').innerText = `🚴 ${config.whiteheadName}`;
         }
 
         window.openSettings = () => document.getElementById('settings-overlay').style.display = 'flex';
@@ -373,12 +439,14 @@
             config.parkingLatLng = document.getElementById('cfg-parking-latlng').value.trim() || "22.493578,114.130367";
             config.school1LatLng = document.getElementById('cfg-school1-latlng').value.trim() || "22.49702,114.14132";
             config.school2LatLng = document.getElementById('cfg-school2-latlng').value.trim() || "22.4428,114.04369";
+            config.bridePoolLatLng = document.getElementById('cfg-bride-pool').value.trim() || "22.476333,114.236316";
+            config.whiteheadLatLng = document.getElementById('cfg-whitehead').value.trim() || "22.435520,114.240642";
             const walkOv = document.getElementById('cfg-walk-override').value.trim();
             config.walkOverride = walkOv === '' ? '' : Math.max(0, parseInt(walkOv) || 0);
             config.roundaboutA = document.getElementById('cfg-roundabout-a').value.trim() || "22.497277,114.130785";
             config.roundaboutB = document.getElementById('cfg-roundabout-b').value.trim() || "22.497104,114.130993";
             config.roundaboutMid = document.getElementById('cfg-roundabout-mid').value.trim();
-            localStorage.setItem('sh_config_v60', JSON.stringify(config));
+            localStorage.setItem('sh_config_v64', JSON.stringify(config));
             location.reload();
         };
 
@@ -468,9 +536,24 @@
             } catch(e) {}
         };
 
-        // ============================================
-        // Google Calendar + Tasks
-        // ============================================
+        function setupCommuteSwipe() {
+            const scrollEl = document.getElementById('commute-pages');
+            const dots = document.querySelectorAll('#commute-dots .dot');
+            if (!scrollEl || dots.length === 0) return;
+
+            scrollEl.addEventListener('scroll', () => {
+                const pageIndex = Math.round(scrollEl.scrollLeft / scrollEl.clientWidth);
+                dots.forEach((d, i) => d.classList.toggle('active', i === pageIndex));
+            });
+
+            dots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const idx = parseInt(dot.dataset.page);
+                    scrollEl.scrollTo({ left: idx * scrollEl.clientWidth, behavior: 'smooth' });
+                });
+            });
+        }
+
         const GOOGLE_GAS_URL = "https://script.google.com/macros/s/AKfycbwQYH8acYSz11SzdR9HNhyOrSuMcMjRii1i1Ej1wwJ1wZNs9T8Qj4rB_EGD77AKxBoR8g/exec";
 
         async function loadGoogleData() {
@@ -529,9 +612,6 @@
             return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // ============================================
-        // Weather
-        // ============================================
         function formatTime(date) { return String(date.getHours()).padStart(2, '0') + ":" + String(date.getMinutes()).padStart(2, '0'); }
 
         const stationMap = {
@@ -671,20 +751,6 @@
             return "☁️";
         }
 
-        // ============================================
-        // Commute
-        // ============================================
-        let lastCommuteUpdate = 0;
-
-        function haversineMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const toRad = d => d * Math.PI / 180;
-            const dLat = toRad(lat2 - lat1);
-            const dLon = toRad(lon2 - lon1);
-            const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
         async function getRouteTime(origin, destination, travelMode = 'DRIVE', waypoints = []) {
             const [originLat, originLng] = origin.split(',').map(Number);
             const [destLat, destLng] = destination.split(',').map(Number);
@@ -715,13 +781,10 @@
 
                 const route = data.routes[0];
                 const durationSeconds = parseInt(String(route.duration).replace('s', '')) || 0;
-                const distanceMeters = route.distanceMeters || 0;
 
                 return {
                     minutes: Math.round(durationSeconds / 60),
-                    seconds: durationSeconds,
-                    distance: (distanceMeters / 1000).toFixed(2) + ' km',
-                    distanceMeters: distanceMeters
+                    seconds: durationSeconds
                 };
             } catch (e) {
                 console.error("GAS Proxy Error:", e);
@@ -731,32 +794,21 @@
 
         function updateWalkDisplay(walkResult) {
             const timeEl = document.getElementById('walk-time');
-            const distEl = document.getElementById('walk-distance');
-            if (!timeEl || !distEl) return;
+            if (!timeEl) return;
 
-            // 如果有手動覆蓋，優先使用
             if (config.walkOverride !== '' && config.walkOverride !== null && config.walkOverride !== undefined) {
                 const ov = parseInt(config.walkOverride);
                 if (!isNaN(ov) && ov > 0) {
                     timeEl.textContent = ov + ' min';
-                    // 仍然顯示 Google 的距離（如果有）
-                    if (walkResult && !walkResult.error) {
-                        distEl.textContent = walkResult.distance + ' (manual)';
-                    } else {
-                        distEl.textContent = '(manual)';
-                    }
                     return;
                 }
             }
 
-            // 否則用 Google 估算
             if (!walkResult || walkResult.error) {
                 timeEl.textContent = 'ERR';
-                distEl.textContent = '';
                 return;
             }
             timeEl.textContent = walkResult.minutes + ' min';
-            distEl.textContent = walkResult.distance;
         }
 
         function setRouteDisplay(prefix, driveResult, walkResult, thresholds) {
@@ -775,7 +827,6 @@
                 return;
             }
 
-            // 步行時間：優先用手動覆蓋
             let walkMins = 0;
             if (config.walkOverride !== '' && config.walkOverride !== null && config.walkOverride !== undefined) {
                 const ov = parseInt(config.walkOverride);
@@ -787,7 +838,7 @@
             const totalMins = driveResult.minutes + walkMins;
 
             timeEl.textContent = driveResult.minutes;
-            subEl.textContent = driveResult.distance + ' drive';
+            subEl.textContent = 'min drive';
             timeEl.style.color = "#fff";
 
             if (totalEl) totalEl.textContent = `Total: ${totalMins} min`;
@@ -799,79 +850,62 @@
 
         function updateRoundaboutFromProbe(probeResult) {
             const badge = document.getElementById('roundabout-badge');
-            const detail = document.getElementById('roundabout-detail');
             const box = document.getElementById('roundabout-box');
-            if (!badge || !detail || !box) return;
+            if (!badge || !box) return;
 
             if (!probeResult || probeResult.error) {
                 badge.textContent = 'N/A';
                 badge.style.background = '#666';
-                detail.textContent = 'Cannot probe roundabout';
                 box.style.borderLeftColor = '#555';
                 return;
             }
 
             const mins = probeResult.minutes;
             const secs = probeResult.seconds;
-            const distM = probeResult.distanceMeters;
 
-            let status, color, text;
+            let status, color;
 
-            if (distM < 50 || secs < 20) {
-                status = 'Short'; color = '#888';
-                text = `繞圈 ${secs}s · ${distM}m — 可能未繞迴旋處`;
+            if (secs < 20) {
+                status = 'Short';
+                color = '#888';
             } else if (mins <= 2) {
-                status = 'Clear'; color = '#4CAF50';
-                text = `繞圈 ${secs}s · ${distM}m · 暢通`;
+                status = 'Clear';
+                color = '#4CAF50';
             } else if (mins <= 4) {
-                status = 'Slow'; color = '#FF9800';
-                text = `繞圈 ${secs}s · ${distM}m · 車流稍多`;
+                status = 'Slow';
+                color = '#FF9800';
             } else {
-                status = 'Jam'; color = '#F44336';
-                text = `繞圈 ${secs}s · ${distM}m · 明顯擠塞`;
+                status = 'Jam';
+                color = '#F44336';
             }
 
             badge.textContent = status;
             badge.style.background = color;
-            detail.textContent = text;
             box.style.borderLeftColor = color;
         }
 
         async function updateCommuteData() {
             const roundaboutWaypoints = config.roundaboutMid ? [config.roundaboutMid] : [];
 
-            const [walk, driveS1, driveS2, roundaboutProbe] = await Promise.all([
+            const [walk, driveS1, driveS2, driveBride, driveWhitehead, roundaboutProbe] = await Promise.all([
                 getRouteTime(config.homeLatLng, config.parkingLatLng, 'WALK'),
                 getRouteTime(config.parkingLatLng, config.school1LatLng, 'DRIVE'),
                 getRouteTime(config.parkingLatLng, config.school2LatLng, 'DRIVE'),
+                getRouteTime(config.parkingLatLng, config.bridePoolLatLng, 'DRIVE'),
+                getRouteTime(config.parkingLatLng, config.whiteheadLatLng, 'DRIVE'),
                 getRouteTime(config.roundaboutA, config.roundaboutB, 'DRIVE', roundaboutWaypoints)
             ]);
-
-            // 診斷：計算直線距離，與 Google 結果對比
-            const [hLat, hLng] = config.homeLatLng.split(',').map(Number);
-            const [pLat, pLng] = config.parkingLatLng.split(',').map(Number);
-            const straightM = haversineMeters(hLat, hLng, pLat, pLng);
-            const googleM = walk && !walk.error ? walk.distanceMeters : 0;
-            console.log(`🚶 Walk: 直線 ${straightM.toFixed(0)}m · Google ${googleM}m · 比率 ${googleM > 0 ? (googleM/straightM).toFixed(2) : 'N/A'}x`);
-            if (walk && !walk.error) {
-                console.log(`   Google: ${walk.minutes} min · ${walk.distance}`);
-            }
-            if (config.walkOverride !== '') {
-                console.log(`   Override: ${config.walkOverride} min (手動)`);
-            }
 
             updateWalkDisplay(walk);
             setRouteDisplay('school1', driveS1, walk, [8, 12]);
             setRouteDisplay('school2', driveS2, walk, [18, 25]);
+            setRouteDisplay('bride', driveBride, walk, [18, 25]);
+            setRouteDisplay('whitehead', driveWhitehead, walk, [22, 30]);
             updateRoundaboutFromProbe(roundaboutProbe);
 
-            lastCommuteUpdate = Date.now();
-            document.getElementById('commute-update-time').textContent = 'Updated ' + formatTime(new Date());
+            document.getElementById('commute-update-time').textContent = '● ' + formatTime(new Date());
         }
 
-        // ============================================
-        // Bus ETA
-        // ============================================
         let targetStopId = null;
         let targetStopSeq = null;
         let targetDirection = null;
@@ -944,18 +978,16 @@
             } catch (e) { console.error("Bus ETA Error:", e); }
         }
 
-        // ============================================
-        // Init
-        // ============================================
         window.onload = function() {
             loadConfig();
+            setupCommuteSwipe();
             updateClock(); setInterval(updateClock, 1000);
             fetchWeather(); setInterval(fetchWeather, 5 * 60 * 1000);
             fetchHKOWarning(); setInterval(fetchHKOWarning, 60 * 1000);
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
             updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
-            console.log("Dashboard V60 ready");
+            console.log("Dashboard V64 ready");
         };
     </script>
 </body>
