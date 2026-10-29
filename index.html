@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Smart Home Dashboard V66</title>
+    <title>Smart Home Dashboard V67</title>
     <style>
         :root { --bg: #000; --card: #151515; --text: #fff; --accent: #4CAF50; --warn: #ff9800; --bus: #E83434; --action: #FF5252; }
         body {
             background: var(--bg); color: var(--text); font-family: Roboto, "Segoe UI", sans-serif;
             margin: 0; padding: 0; height: 100vh; height: 100dvh; width: 100vw; overflow: hidden;
             user-select: none; position: relative; transition: background 0.5s; -webkit-tap-highlight-color: transparent;
+            font-size: 16px;
         }
         .top-btn-group { position: fixed; top: 12px; right: 12px; z-index: 9999; display: flex; gap: 10px; }
-        .circle-btn { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transition: all 0.3s; }
+        .circle-btn { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); width: 42px; height: 42px; border-radius: 50%; font-size: 21px; cursor: pointer; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transition: all 0.3s; }
         .circle-btn:active { background: rgba(255,255,255,0.6); transform: scale(0.95); }
         #orbit-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; opacity: 1; transition: opacity 1s ease; }
         #orbit-container { width: 97vw; height: 97vh; height: 97dvh; transition: transform 2s ease-in-out; transform: translate(0, 0); }
@@ -23,49 +24,77 @@
         .card { background: var(--card); border-radius: 12px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .col-main { display: flex; flex-direction: column; gap: 8px; height: 100%; }
 
-        .weather-card { flex: 1.4; display: flex; flex-direction: column; padding: 10px 12px; }
-        .clock-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 3px; }
-        .clock-left { display: flex; align-items: flex-end; gap: 10px; }
-        .clock-time { font-size: 2.4em; font-weight: bold; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
-        .warning-container { display: flex; gap: 4px; height: 32px; align-items: center; margin-bottom: 2px; flex-wrap: wrap; }
-        .warning-text-badge { display: inline-flex; align-items: center; background: #2c0b0e; border: 1px solid #5a1a21; color: #ffcccc; padding: 3px 8px; border-radius: 6px; font-size: 0.75em; font-weight: bold; white-space: nowrap; box-shadow: 0 0 8px rgba(231,76,60,0.3); }
-        .clock-date { font-size: 0.9em; color: #aaa; text-align: right; }
+        /* ✅ 天氣卡：flex 加大，俾警告更多位 */
+        .weather-card { flex: 1.55; display: flex; flex-direction: column; padding: 10px 12px; min-height: 0; }
+        .clock-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 4px;
+            gap: 8px;
+        }
+        .clock-left {
+            display: flex; align-items: flex-start; gap: 10px;
+            flex-wrap: wrap;          /* 警告多嘅時候可以換行 */
+            flex: 1;
+            min-width: 0;
+        }
+        .clock-time { font-size: 2.6em; font-weight: bold; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
 
-        #action-tip { display: none; position: relative; width: 94%; margin: 0 auto; background: #9c0606; color: white; align-items: center; justify-content: center; padding: 0 6px; min-height: 26px; border-radius: 6px; font-size: 1em; font-weight: 900; overflow: hidden; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        /* ✅ 警告區：加大高度 + 字 + 允許換行 */
+        .warning-container {
+            display: flex; gap: 5px;
+            min-height: 36px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .warning-text-badge {
+            display: inline-flex; align-items: center;
+            background: #2c0b0e; border: 1px solid #5a1a21; color: #ffcccc;
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.85em;           /* ✅ 0.75 → 0.85 */
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 0 8px rgba(231,76,60,0.3);
+            line-height: 1.2;
+        }
+
+        .clock-date { font-size: 0.85em; color: #aaa; text-align: right; white-space: nowrap; flex-shrink: 0; padding-top: 4px; }
+
+        #action-tip { display: none; position: relative; width: 94%; margin: 0 auto 4px; background: #9c0606; color: white; align-items: center; justify-content: center; padding: 0 6px; min-height: 28px; border-radius: 6px; font-size: 1.05em; font-weight: 900; overflow: hidden; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .marquee { display: inline-block; white-space: nowrap; will-change: transform; animation: marquee 12s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-180%); } }
 
         .w-main-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; margin-bottom: 0; }
-        .w-temp-big { font-size: 2.6em; font-weight: bold; line-height: 1; margin-left: -3px; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
-        .w-icon-big { font-size: 2em; margin-right: 6px; }
+        .w-temp-big { font-size: 2.9em; font-weight: bold; line-height: 1; margin-left: -3px; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+        .w-icon-big { font-size: 2.2em; margin-right: 6px; }
         .w-range-box { text-align: right; display: flex; flex-direction: column; justify-content: center; padding-right: 3px; }
-        .wr-high { font-size: 1.2em; color: #ff7675; font-weight: bold; }
-        .wr-low { font-size: 1.2em; color: #74b9ff; font-weight: bold; }
-        #w-station { text-align: right; color: #888; font-size: 0.75em; margin-bottom: 6px; font-style: italic; }
+        .wr-high { font-size: 1.3em; color: #ff7675; font-weight: bold; }
+        .wr-low { font-size: 1.3em; color: #74b9ff; font-weight: bold; }
+        #w-station { text-align: right; color: #888; font-size: 0.82em; margin-bottom: 6px; font-style: italic; }
         .w-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
-        .w-item { text-align: center; background: #222; border-radius: 5px; padding: 4px; }
-        .w-label { font-size: 0.62em; color: #999; display: block; }
-        .w-val { font-size: 0.95em; font-weight: bold; color: #ddd; font-variant-numeric: tabular-nums; }
+        .w-item { text-align: center; background: #222; border-radius: 5px; padding: 5px 3px; }
+        .w-label { font-size: 0.68em; color: #999; display: block; }
+        .w-val { font-size: 1.05em; font-weight: bold; color: #ddd; font-variant-numeric: tabular-nums; }
 
         .forecast-row { display: flex; gap: 5px; margin-top: auto; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 8px; }
         .f-day { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
-        .fd-name { font-size: 0.7em; color: #aaa; margin-bottom: 1px; text-transform: uppercase; }
-        .fd-icon { font-size: 1.2em; margin-bottom: 1px; }
-        .fd-temp { font-size: 0.85em; font-weight: bold; color: #fff; }
+        .fd-name { font-size: 0.75em; color: #aaa; margin-bottom: 1px; text-transform: uppercase; }
+        .fd-icon { font-size: 1.3em; margin-bottom: 1px; }
+        .fd-temp { font-size: 0.9em; font-weight: bold; color: #fff; }
 
-        /* ===== Commute Card V66 ===== */
+        /* ===== Commute Card ===== */
         .commute-card {
             flex: 1; background: #0d111a; border-left: 5px solid #2196F3;
             padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; overflow: hidden;
             transition: border-left-color 0.5s;
         }
         .commute-header {
-            font-size: 0.95em; font-weight: bold;
+            font-size: 1.05em; font-weight: bold;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid #333; padding-bottom: 4px; gap: 6px;
         }
-        .walk-inline { font-size: 0.8em; color: #FFC107; font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; }
-        .commute-update-time { font-size: 0.62em; color: #888; font-weight: normal; white-space: nowrap; }
+        .walk-inline { font-size: 0.88em; color: #FFC107; font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .commute-update-time { font-size: 0.7em; color: #888; font-weight: normal; white-space: nowrap; }
 
         .commute-pages {
             display: flex;
@@ -86,15 +115,14 @@
             box-sizing: border-box;
         }
 
-        /* V66：橫排 drive → total */
         .commute-item {
-            background: #1a1a1a; border-radius: 8px; padding: 6px 8px;
+            background: #1a1a1a; border-radius: 8px; padding: 7px 8px;
             display: flex; flex-direction: column; align-items: stretch;
             border-left: 3px solid transparent; transition: border-left-color 0.4s;
             min-width: 0;
         }
         .commute-label {
-            font-size: 0.68em; color: #999; text-transform: uppercase;
+            font-size: 0.74em; color: #999; text-transform: uppercase;
             margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             text-align: center;
         }
@@ -113,33 +141,32 @@
             min-width: 0;
         }
         .commute-time {
-            font-size: 1.9em;
+            font-size: 2.05em;
             font-weight: bold;
             color: #fff;
             line-height: 1;
             font-variant-numeric: tabular-nums;
         }
         .commute-total-value {
-            font-size: 1.9em;
+            font-size: 2.05em;
             font-weight: bold;
             color: #4CAF50;
             line-height: 1;
             font-variant-numeric: tabular-nums;
         }
         .commute-unit {
-            font-size: 0.62em;
+            font-size: 0.68em;
             color: #888;
             margin-top: 2px;
             white-space: nowrap;
         }
         .commute-arrow {
-            font-size: 1em;
+            font-size: 1.1em;
             color: #555;
             padding-bottom: 14px;
             flex-shrink: 0;
         }
 
-        /* 導航 */
         .page-nav {
             display: flex;
             justify-content: space-between;
@@ -184,39 +211,39 @@
         }
 
         .roundabout-status {
-            background: #1a1a1a; border-radius: 6px; padding: 5px 10px;
+            background: #1a1a1a; border-radius: 6px; padding: 6px 10px;
             border-left: 3px solid #555;
             display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.8em; font-weight: bold;
+            font-size: 0.88em; font-weight: bold;
             transition: border-left-color 0.4s;
         }
         .roundabout-label { color: #ccc; }
         .roundabout-badge {
-            font-size: 0.72em; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.78em; padding: 2px 8px; border-radius: 4px;
             font-weight: bold; background: #444; color: #fff;
             font-variant-numeric: tabular-nums;
         }
 
         .col-side { display: flex; flex-direction: column; gap: 8px; height: 100%; }
         .schedule-box { flex: 0 0 35%; border-top: 3px solid #FFD700; overflow: hidden; display: flex; flex-direction: column; padding: 8px; }
-        .side-title { font-size: 0.95em; color: #aaa; font-weight: bold; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 3px; }
-        .schedule-content { flex: 1; font-size: 0.9em; color: #ddd; white-space: pre-wrap; line-height: 1.35; overflow-y: auto; }
+        .side-title { font-size: 1.02em; color: #aaa; font-weight: bold; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 3px; }
+        .schedule-content { flex: 1; font-size: 0.95em; color: #ddd; white-space: pre-wrap; line-height: 1.35; overflow-y: auto; }
         .task-box { flex: 0 0 20%; border-top: 3px solid var(--accent); min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 8px; }
-        .task-title { font-size: 1em; color: var(--accent); padding-bottom: 3px; margin-bottom: 4px; font-weight: bold; border-bottom: 1px solid #333; }
+        .task-title { font-size: 1.05em; color: var(--accent); padding-bottom: 3px; margin-bottom: 4px; font-weight: bold; border-bottom: 1px solid #333; }
         .task-list { list-style: none; padding: 0; overflow-y: auto; margin: 0; flex: 1; }
-        .task-item { padding: 4px 2px; border-bottom: 1px solid #333; display: flex; align-items: flex-start; font-size: 0.85em; gap: 6px; cursor: pointer; }
-        .task-checkbox { width: 18px; height: 18px; margin-right: 6px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+        .task-item { padding: 4px 2px; border-bottom: 1px solid #333; display: flex; align-items: flex-start; font-size: 0.92em; gap: 6px; cursor: pointer; }
+        .task-checkbox { width: 20px; height: 20px; margin-right: 6px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
         .bus-box { flex: 0 0 45%; border-top: 3px solid #00bfff; background: #1a1111; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 8px; }
         #bus-container { flex: 1; overflow-y: auto; }
-        .bus-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; height: 20px; }
-        .bus-badge { background: var(--bus); color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8em; }
+        .bus-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; height: 22px; }
+        .bus-badge { background: var(--bus); color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
         .bus-compact-list { display: flex; flex-direction: column; gap: 4px; height: 100%; overflow: hidden; }
-        .bus-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; background: #2a1515; border-radius: 5px; height: 32px; box-sizing: border-box; }
+        .bus-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; background: #2a1515; border-radius: 5px; height: 34px; box-sizing: border-box; }
         .bus-row.first { background: #d63031; }
         .bus-row.first * { color: white !important; font-weight: bold; }
         .bus-row.soon { background: #8b1a1a; }
-        .br-time { font-family: monospace; font-size: 1.1em; color: #eee; font-variant-numeric: tabular-nums; }
-        .br-min { font-size: 0.85em; color: #aaa; font-weight: bold; }
+        .br-time { font-family: monospace; font-size: 1.15em; color: #eee; font-variant-numeric: tabular-nums; }
+        .br-min { font-size: 0.9em; color: #aaa; font-weight: bold; }
         .br-min.soon { color: #ffeb3b; }
 
         #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -455,7 +482,7 @@
                     <div class="card bus-box">
                         <div class="bus-header-row">
                             <span class="bus-badge" id="bus-badge">...</span>
-                            <span style="font-size:0.75em;color:#888;" id="bus-name">...</span>
+                            <span style="font-size:0.8em;color:#888;" id="bus-name">...</span>
                         </div>
                         <div id="bus-container" class="bus-compact-list">
                             <div style="text-align:center; color:#666; padding:8px;">Loading...</div>
@@ -501,7 +528,7 @@
         };
 
         function loadConfig() {
-            const stored = localStorage.getItem('sh_config_v66');
+            const stored = localStorage.getItem('sh_config_v67');
             if (stored) { try { config = { ...config, ...JSON.parse(stored) }; } catch(e) {} }
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
             set('cfg-weather-station', config.weatherStation);
@@ -549,7 +576,7 @@
             config.roundaboutA = document.getElementById('cfg-roundabout-a').value.trim() || "22.497277,114.130785";
             config.roundaboutB = document.getElementById('cfg-roundabout-b').value.trim() || "22.497104,114.130993";
             config.roundaboutMid = document.getElementById('cfg-roundabout-mid').value.trim();
-            localStorage.setItem('sh_config_v66', JSON.stringify(config));
+            localStorage.setItem('sh_config_v67', JSON.stringify(config));
             location.reload();
         };
 
@@ -939,7 +966,6 @@
             timeEl.textContent = walkResult.minutes + ' min';
         }
 
-        // V66：drive 和 total 橫排
         function setRouteDisplay(prefix, driveResult, walkResult, thresholds) {
             const timeEl = document.getElementById(`time-${prefix}`);
             const totalEl = document.getElementById(`total-${prefix}`);
@@ -1112,7 +1138,7 @@
             findBusStop();
             loadGoogleData(); setInterval(loadGoogleData, 60 * 1000);
             updateCommuteData(); setInterval(updateCommuteData, 2 * 60 * 1000);
-            console.log("Dashboard V66 ready");
+            console.log("Dashboard V67 ready");
         };
     </script>
 </body>
